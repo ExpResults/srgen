@@ -7,81 +7,137 @@
 #include <boost/tuple/tuple.hpp>
 #include <boost/functional/hash.hpp>
 
+#include <boost/archive/text_iarchive.hpp>
+#include <boost/archive/text_oarchive.hpp>
+
 namespace SR {
 
 namespace action {
 
-// The action type
-//  - 1. <int> action name prefix
-//  - 2. <int> postag[on SH] / deprel[on LA and RA]
-//  - 3. <int> word
 class action_t {
 public:
   action_t() 
-    : first(0), second(0), third(0) {
-      seed = 0;
-  }
-
-  int act() const {
-    return first;
-  }
-
-  int rel() const {
-    return second;
-  }
-
-  int word() const {
-    return third;
-  }
-
-  action_t(int _first, int _second, int _third)
-    : first(_first), second(_second), third(_third) {
+    : prefix(0), label(0), word(0), index(-1) {
     seed = 0;
-    boost::hash_combine(seed, _first);
-    boost::hash_combine(seed, _second);
-    boost::hash_combine(seed, _third);
+  }
+
+  action_t(int _prefix, int _label, int _word)
+    : prefix(_prefix), label(_label), word(_word), index(-1) {
+
+    seed = 0;
+    boost::hash_combine(seed, _prefix);
+    boost::hash_combine(seed, _label);
+    boost::hash_combine(seed, _word);
+  }
+
+  action_t(int _prefix, int _label, int _word, int _index)
+    : prefix(_prefix), label(_label), word(_word), index(_index) {
+
+    seed = 0;
+    // Only hash the first three element since index is only
+    // a auxilary element.
+    boost::hash_combine(seed, _prefix);
+    boost::hash_combine(seed, _label);
+    boost::hash_combine(seed, _word);
   }
 
   inline std::size_t hash() const {
     return seed;
   }
 
+  action_t & operator = (const action_t & a) {
+    seed    = a.seed;
+    prefix  = a.prefix;
+    label   = a.label;
+    word    = a.word;
+    index   = a.index;
+
+    return (*this);
+  }
+
   bool operator == (const action_t & a) const {
     return (a.seed == seed && 
-        a.first == first &&
-        a.second == second &&
-        a.third == third);
+        a.prefix == prefix &&
+        a.label == label &&
+        a.word == word);
   }
 
   bool operator != (const action_t & a) const {
     return !((*this) == a);
   }
 
-  friend std::ostream & operator << (std::ostream & os, const action_t & act) {
-    os << "(" << ActionEngine::get_const_instance().decode(act.first)
-      << ",";
-    if (act.first == ActionEncoderAndDecoder::SH) {
-      os << PoSTagEngine::get_const_instance().decode(act.second)
-        << ","
-        << WordEngine::get_const_instance().decode(act.third)
-        << ")";
-    } else {
-      os << DeprelEngine::get_const_instance().decode(act.second)
-        << ")";
-    }
+  friend class boost::serialization::access;
 
-    return os;
+  template<class Archive>
+  void serialize(Archive & ar, const unsigned int /* file_version */) {
+    ar & prefix & label & word & index & seed;
   }
 
+  friend std::ostream & operator << (std::ostream & os, const action_t & act) {
+    os << "(" << ActionEngine::get_const_instance().decode(act.prefix)
+      << ", ";
+
+    if (act.prefix == ActionEncoderAndDecoder::SH) {
+      os << PoSTagEngine::get_const_instance().decode(act.label)
+        << ", "
+        << WordEngine::get_const_instance().decode(act.word)
+        << ", [" << act.index << "]"
+        << ")";
+    } else {
+      os << DeprelEngine::get_const_instance().decode(act.label)
+        << ")";
+    }
+    return os;
+  }
 
   friend std::size_t hash_value(const action_t & a) {
     return a.seed;
   }
 
-private:
-  int first, second, third;
+  int prefix;
+  // The action prefix (SHIFT, LEFT-ARC, RIGHT-ARC)
+
+  int label;
+  // The relation field. It represent PoSTag (on SHIFT) and
+  // dependency relation (on LEFT-ARC and RIGHT-ARC)
+
+  int word;
+  // The word inded.
+
+  int index;
+  // extra field for auxilary in the SHIFT action.
+
   std::size_t seed;
 };
+
+/**
+ * Judge if the given action is SHIFT
+ *
+ *  @param[in]  act   The action
+ *  @return     bool  If the action is SHIFT, return true;
+ *                    otherwise false.
+ */
+
+bool is_shift(const action_t & act);
+
+/**
+ * Judge if the given action is LEFT-ARC
+ *
+ *  @param[in]  act   The action
+ *  @return     bool  If the action is LEFT-ARC, return true;
+ *                    otherwise false.
+ */
+bool is_left_arc(const action_t & act);
+
+
+/**
+ * Judge if the given action is LEFT-ARC
+ *
+ *  @param[in]  act   The action
+ *  @return     bool  If the action is LEFT-ARC, return true;
+ *                    otherwise false.
+ */
+bool is_right_arc(const action_t & act);
 
 
 /**
@@ -93,6 +149,7 @@ private:
  */
 int get_correct_actions(const dependency_t & oracle,
     std::vector<action_t> & actions);
+
 
 /**
  * Perform in order left to root, root to right search to get

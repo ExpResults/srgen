@@ -9,6 +9,21 @@ namespace SR {
 
 namespace action {
 
+bool is_shift(const action_t & act) {
+  return (act.prefix == ActionEncoderAndDecoder::SH);
+}
+
+
+bool is_left_arc(const action_t & act) {
+  return (act.prefix == ActionEncoderAndDecoder::LA);
+}
+
+
+bool is_right_arc(const action_t & act) {
+  return (act.prefix == ActionEncoderAndDecoder::RA);
+}
+
+
 int get_correct_actions(const dependency_t & oracle,
     std::vector<action_t> & actions) {
   // Extract ordered-tree structure from the oracle parse.
@@ -44,21 +59,21 @@ int get_correct_actions_travel(int root,
     get_correct_actions_travel(children[i], parse, tree, actions);
   }
 
-  BOOST_LOG_TRIVIAL(trace) << "SH-" << parse.postags[root] << "-" << parse.forms[root];
   actions.push_back( action_t(
-        ActionEncoderAndDecoder::SH, parse.postags[root], parse.forms[root]) );
+        ActionEncoderAndDecoder::SH,
+        parse.postags[root],
+        parse.forms[root],
+        root) );
 
   for (int j = i; j < children.size(); ++ j) {
     int child = children[j];
     get_correct_actions_travel(child, parse, tree, actions);
-    BOOST_LOG_TRIVIAL(trace) << "RA-" << parse.deprels[child];
     actions.push_back( action_t(
           ActionEncoderAndDecoder::RA, parse.deprels[child], 0) );
   }
 
   for (int j = i - 1; j >= 0; -- j) {
     int child = children[j];
-    BOOST_LOG_TRIVIAL(trace) << "LA-" << parse.deprels[child];
     actions.push_back( action_t(
          ActionEncoderAndDecoder::LA, parse.deprels[child], 0) );
   }

@@ -24,6 +24,13 @@ struct DependencyParse {
   std::vector<int> heads;
   std::vector<deprel_t> deprels;
 
+  void clear() {
+    forms.clear();
+    postags.clear();
+    heads.clear();
+    deprels.clear();
+  }
+
   void push_back(const word_t & form,
       const postag_t & postag,
       int head,
@@ -33,27 +40,25 @@ struct DependencyParse {
     heads.push_back(head);
     deprels.push_back(deprel);
   }
+
+  friend std::ostream & operator << (std::ostream & os, const DependencyParse & d) {
+    for (int i = 0; i < d.forms.size(); ++ i) {
+      std::cout << d.forms[i] << " ";
+    }
+
+    return os;
+  }
 };
 
 
 typedef DependencyParse   dependency_t;
 typedef DependencyParse   unordered_dependency_t;
 
-struct Parameter {
-  Parameter()  : w(0), w_sum(0), w_time(0) {}
-
-  floatval_t  w;
-  floatval_t  w_sum;
-  int         w_time;
-};
-
-typedef Parameter param_t;
-
 const int kMaxNumberOfWords = 128;
 
 const int kMaxLengthOfBuffer = 1024;
 
-const int kStartIndexOfValidPoSTag = 3;
+const int kStartIndexOfValidPoSTag = PoSTagEncoderAndDecoder::DOLLAR;
 
 const int kNumberOfPoSTags = PoSTagEncoderAndDecoder::kMaxIndexOfPoSTag;
 

@@ -13,12 +13,16 @@ public:
   Pipe();
 
   typedef std::vector<action::action_t> action_collection_t;
+  // a list of actions;
 
   typedef std::vector<action::action_t> action_sequence_t;
+  //
 
   typedef boost::unordered_map<action::action_t, floatval_t>  packed_score_t;
+  //
 
   typedef boost::tuples::tuple<StateItem *, action::action_t, floatval_t> scored_transition_t;
+  //
 
   /**
    *
@@ -43,6 +47,11 @@ public:
       dependency_t & output,
       int now);
 
+  //
+  bool save_model(const char * prefix);
+
+  //
+  bool load_model(const char * prefix);
 
 private:
 
@@ -115,16 +124,17 @@ private:
        StateItem & to);
 
   /**
-   *
+   * Back-trace from the given state, collect the state chain.
    *
    *
    *
    */
   void collect_state_chain_and_update_score(const StateItem * predicted_state,
       const StateItem * correct_state, int now, floatval_t add, floatval_t sub);
+
 private:
   int max_beam_size;
-  
+
   StateItem * lattice;
   StateItem * lattice_index[kMaxSteps];
 

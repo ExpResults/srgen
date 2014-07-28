@@ -22,10 +22,25 @@ Pipe::Pipe()
   : max_beam_size(32) {
   // Allocate a very large lattice.
   lattice = new StateItem[kMaxSteps * kMaxBeamSize];
-  BOOST_LOG_TRIVIAL(info) << "Pipe.lattice["
+  BOOST_LOG_TRIVIAL(info) << "PIPE lattice["
     << kMaxSteps * kMaxBeamSize << "] allocated";
 }
 
+
+bool Pipe::save_model(const char * prefix) {
+  std::string chunk(prefix);
+
+  return (save_word_engine((chunk + ".word").c_str()) &&
+      weight.save_weight((chunk + ".weight").c_str()));
+}
+
+
+bool Pipe::load_model(const char * prefix) {
+  std::string chunk(prefix);
+
+  return (load_word_engine((chunk + ".word").c_str()) &&
+      weight.load_weight((chunk + ".weight").c_str()));
+}
 
 int Pipe::insert_into_beam(StateItem ** beam_wrapper,
     const StateItem * item,
@@ -59,7 +74,9 @@ int Pipe::extend_candidate_transition(const scored_transition_t & trans,
       std::pop_heap(candidate_transitions,
           candidate_transitions + max_beam_size,
           TransitionHeapMore);
+
       candidate_transitions[max_beam_size-1] = trans;
+
       std::push_heap(candidate_transitions,
           candidate_transitions + max_beam_size,
           TransitionHeapMore);
@@ -82,12 +99,12 @@ int Pipe::get_possible_actions(const StateItem & item,
   // Generate all possible SHIFT actions, first loop over possible
   // PoSTags.
   for (int i = kStartIndexOfValidPoSTag;
-      i < kNumberOfPoSTags; ++ i) {
+      i < kNumberOfPoSTags - 1; ++ i) {
     // Then loop over the words in the buffer.
     for (int j = 0; j < item.N; ++ j) {
       if (item.buffer.test(j)) {
         actions.push_back(action::action_t(ActionEncoderAndDecoder::SH, i,
-              (*item.sentence_ref)[j]));
+              (*item.sentence_ref)[j], j));
       }
     }
   }
@@ -110,20 +127,20 @@ void Pipe::transit(const StateItem & from,
     floatval_t score,
     StateItem & to) {
 
-  if (act.act() == ActionEncoderAndDecoder::SH) {
-
-    from.shift(act.rel(), act.word(), to);
+  if (action::is_shift(act)) {
+    from.shift(act.label, act.word, act.index, to);
     to.score = score;
-  } else if (act.act() == ActionEncoderAndDecoder::LA) {
 
-    from.left_arc(act.rel(), to);
+  } else if (action::is_left_arc(act)) {
+    from.left_arc(act.label, to);
     to.score = score;
-  } else if (act.act() == ActionEncoderAndDecoder::RA) {
 
-    from.right_arc(act.rel(), to);
+  } else if (action::is_right_arc(act)) {
+    from.right_arc(act.label, to);
     to.score = score;
+
   } else {
-    BOOST_LOG_TRIVIAL(warning) << "UNKNOWN action : " << act.act();
+    BOOST_LOG_TRIVIAL(warning) << "UNKNOWN action : " << act.prefix;
   }
 }
 
@@ -154,6 +171,25 @@ void Pipe::collect_state_chain_and_update_score(
     exit(1);
   }
 
+  // The stored action chain is in reversed order. Take a action chain with
+  // 4 states, the order is [4], [3], [2], [1]
+
+  for (int i = nr_predicated_states - 1; i > 0; -- i) {
+    BOOST_LOG_TRIVIAL(trace) << "PRED state chain from "
+      << (void *)predicted_state_chain[i]
+      << " to "
+      << (void *)predicted_state_chain[i - 1]
+      << " "
+      << predicted_state_chain[i - 1]->last_action;
+
+    BOOST_LOG_TRIVIAL(trace) << "CORR state chain from "
+      << (void *)correct_state_chain[i]
+      << " to "
+      << (void *)correct_state_chain[i - 1]
+      << " "
+      << correct_state_chain[i - 1]->last_action;
+  }
+
   int i;
   for (i = nr_correct_state - 1; i >= 0; -- i) {
     if (predicted_state_chain[i]->last_action != correct_state_chain[i]->last_action) {
@@ -161,9 +197,11 @@ void Pipe::collect_state_chain_and_update_score(
     }
   }
 
+  BOOST_LOG_TRIVIAL(trace) << "START updating at POSITION [" << i << "]";
+
   for (i = i + 1; i > 0; -- i) {
-    action::action_t predict_action = predicted_state_chain[i]->last_action;
-    action::action_t correct_action = correct_state_chain[i]->last_action;
+    action::action_t predict_action = predicted_state_chain[i- 1]->last_action;
+    action::action_t correct_action = correct_state_chain[i- 1]->last_action;
 
     update_state_score((*predicted_state_chain[i]), predict_action, now, sub);
     update_state_score((*correct_state_chain[i]), correct_action, now, add);
@@ -179,8 +217,14 @@ void Pipe::work(const sentence_t & sentence,
   // GET whether perform training.
   // If gold action is provide, perform training on the current instance.
   bool train_mode = (gold_actions.size() == sentence.size() * 2 - 1);
+  if (train_mode) {
+    BOOST_LOG_TRIVIAL(trace) << "TRAIN MODE activated.";
+  } else {
+    BOOST_LOG_TRIVIAL(trace) << "TEST MODE activated.";
+  }
 
   int N = sentence.size();
+  // BOOST_LOG_TRIVIAL(debug) << N;
   int steps = (N << 1) - 1;
 
   // Perpare the lattic
@@ -195,9 +239,10 @@ void Pipe::work(const sentence_t & sentence,
   // Set the correct state link.
   StateItem * correct_state = lattice;
 
-  for (int step = 1; step < steps; ++ step) {
+  int step;
+  for (step = 1; step < steps; ++ step) {
     // generate state from states in step(i-1) to step(i)
-    BOOST_LOG_TRIVIAL(trace) << "ROUND : " << step;
+    // BOOST_LOG_TRIVIAL(trace) << "ROUND : " << step;
 
     int current_beam_size = 0;
 
@@ -212,6 +257,9 @@ void Pipe::work(const sentence_t & sentence,
       for (int i = 0; i < possible_actions.size(); ++ i) {
         // BOOST_LOG_TRIVIAL(trace) << "possible-actions: " << possible_actions[i];
         const action::action_t & act = possible_actions[i];
+        BOOST_LOG_TRIVIAL(trace) << "POSSIBLE ACTION : "
+          << (void *)from << ", " << act << ", " << packed_score[act];
+
         current_beam_size += extend_candidate_transition(
             scored_transition_t(from, act, packed_score[act]),
             current_beam_size, max_beam_size);
@@ -220,6 +268,12 @@ void Pipe::work(const sentence_t & sentence,
 
     // Apply transition.
     for (int i = 0; i < current_beam_size; ++ i) {
+      const scored_transition_t & trans = candidate_transitions[i];
+      BOOST_LOG_TRIVIAL(trace) << "From " << (void *)trans.get<0>()
+        << " to " << (void *)(lattice_index[step] + i)
+        << " " << trans.get<1>()
+        << ", score=" << trans.get<2>();
+
       transit((*candidate_transitions[i].get<0>()),
           candidate_transitions[i].get<1>(),
           candidate_transitions[i].get<2>(),
@@ -227,12 +281,13 @@ void Pipe::work(const sentence_t & sentence,
     }
 
     lattice_index[step + 1] = lattice_index[step] + current_beam_size;
+    BOOST_LOG_TRIVIAL(trace) << "[" << current_beam_size << "] is inserted into beam";
 
     if (train_mode) {
       //
       bool correct_state_in_beam = false;
       for (StateItem * p = lattice_index[step]; p != lattice_index[step + 1]; ++ p) {
-        if (p == correct_state && p->last_action == gold_actions[step]) {
+        if (p->previous == correct_state && p->last_action == gold_actions[step-1]) {
           correct_state = p;
           correct_state_in_beam = true;
           break;
@@ -249,13 +304,44 @@ void Pipe::work(const sentence_t & sentence,
           }
         }
 
-        transit((*correct_state), gold_actions[step], 0, (*lattice_index[step+1]));
+        transit((*correct_state), gold_actions[step-1], 0, (*lattice_index[step+1]));
         // [Update state
         collect_state_chain_and_update_score(best_to,
             lattice_index[step+1], now, 1, -1);
         return;
       }
     }
+  }
+
+  if (train_mode) {
+    StateItem * best_to = lattice_index[step- 1];
+    for (StateItem * to = lattice_index[step- 1] + 1;
+        to != lattice_index[step]; ++ to) {
+      if (best_to->score < to->score) {
+        best_to = to;
+      }
+
+      if (best_to != correct_state) {
+        collect_state_chain_and_update_score(best_to, correct_state, now, 1, -1);
+      }
+      return;
+    }
+  }
+
+  StateItem * best_to = lattice_index[step- 1];
+  for (StateItem * to = lattice_index[step- 1] + 1;
+      to != lattice_index[step]; ++ to) {
+    if (best_to->score < to->score) {
+      best_to = to;
+    }
+  }
+
+  output.clear();
+  for (int i = 0; i < N; ++ i) {
+    output.forms.push_back(sentence[i]);
+    output.postags.push_back(best_to->postags[i]);
+    output.heads.push_back(best_to->heads[i]);
+    output.deprels.push_back(best_to->deprels[i]);
   }
 }
 

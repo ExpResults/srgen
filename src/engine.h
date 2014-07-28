@@ -1,7 +1,13 @@
 #ifndef __SR_ENGINE_H__
 #define __SR_ENGINE_H__
 
+#include "serialization/unordered_map.h"
+
 #include <boost/unordered_map.hpp>
+#include <boost/serialization/string.hpp>
+#include <boost/serialization/vector.hpp>
+#include <boost/serialization/version.hpp>
+#include <boost/serialization/split_member.hpp>
 #include <boost/serialization/singleton.hpp>
 
 namespace SR {
@@ -115,25 +121,50 @@ public:
   int insert(const char * name);
 
   const char * decode(int id) const;
+
   int encode(const char * name) const;
-
-  typedef boost::unordered_map<const char *,
-          int, char_array_hash, char_array_equal> map_t;
-
-  std::vector<char *> id2name;
-  map_t name2id;
-
-  int grand_id;
 
   enum SPECIAL_WORD {
     NONE, BEGIN, END
   };
+
+  typedef boost::unordered_map<std::string, int> map_t;
+
+  std::vector<std::string> id2name;
+  map_t name2id;
+  int grand_id;
+
+private:
+  friend class boost::serialization::access;
+
+  template<class Archive>
+  void serialize(Archive & ar, const unsigned int version) {
+    ar & grand_id;
+    ar & name2id;
+    ar & id2name;
+  }
 };
 
 typedef boost::serialization::singleton<PoSTagEncoderAndDecoder>  PoSTagEngine;
 typedef boost::serialization::singleton<DeprelsEncoderAndDecoder> DeprelEngine;
 typedef boost::serialization::singleton<ActionEncoderAndDecoder>  ActionEngine;
 typedef boost::serialization::singleton<WordEncoderAndDecoder>    WordEngine;
+
+/**
+ * Save the word engine into file.
+ *
+ *  @param[in]  filename  The name of the file.
+ *  @return     bool      Return true on success, otherwise false.
+ */
+bool save_word_engine(const char * filename);
+
+/**
+ * Load the word engine from file.
+ *
+ *  @param[in]  filename  The name of the file.
+ *  @return     bool      Return true on success, otherwise false.
+ */
+bool load_word_engine(const char * filename);
 
 }
 

@@ -6,23 +6,20 @@
 
 namespace SR {
 
-// Typedef
-typedef UnigramScore    us_t;
-typedef BigramScore     bs_t;
-typedef TrigramScore    ts_t;
-
-typedef UnigramScoreMap us_map_t;
-typedef BigramScoreMap  bs_map_t;
-typedef TrigramScoreMap ts_map_t;
-
-
 struct Weight {
   us_map_t    S0w;
   us_map_t    S0p;
   bs_map_t    S0wS0p;
+
+  //
+  bool save_weight(const char * filename);
+
+  //
+  bool load_weight(const char * filename);
 };
 
 typedef Weight  weight_t;
+
 
 template<typename Mapped, typename Entry>
 floatval_t get_score(const Mapped & mapped, const Entry & entry,

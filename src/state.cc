@@ -5,6 +5,14 @@
 
 namespace SR {
 
+std::ostream & operator << (std::ostream & os, const StateItem & item) {
+  os << "ADDRESS:   " << (void *)(&item)  << std::endl;
+  os << "PREV ADDR: " << (void *)(&item)  << std::endl;
+  os << "SCORE:     " << item.score       << std::endl;
+  return os;
+}
+
+
 StateItem & StateItem::operator = (const StateItem & other) {
   copy(other);
   return *(this);
@@ -98,23 +106,23 @@ void StateItem::copy(const StateItem & other) {
 }
 
 
-bool StateItem::shift(postag_t postag_id, word_t word_id) {
-  if (word_id < 0 || word_id >= sentence_ref->size()) {
+bool StateItem::shift(postag_t label, word_t word, int index) {
+  if (index < 0 || index >= sentence_ref->size()) {
     return false;
   }
 
-  if (false == buffer.test(word_id)) {
+  if (false == buffer.test(index)) {
     return false;
   }
 
   // Push the word onto the stack
-  stack.push_back(word_id);
+  stack.push_back(index);
 
   // Erase this word.
-  buffer.flip(word_id);
+  buffer.flip(index);
 
   // Set up the postag.
-  postags[word_id] = postag_id;
+  postags[index] = label;
 
   // Increase the number of word processed.
   ++ C;
@@ -123,12 +131,12 @@ bool StateItem::shift(postag_t postag_id, word_t word_id) {
 }
 
 
-bool StateItem::shift(postag_t postag_id, word_t word_id,
+bool StateItem::shift(postag_t label, word_t word, int index,
     StateItem & other) const {
   other.copy((*this));
-  bool ret = other.shift(postag_id, word_id);
+  bool ret = other.shift(label, word, index);
   other.previous = this;
-  other.last_action = action::action_t(ActionEncoderAndDecoder::SH, postag_id, word_id);
+  other.last_action = action::action_t(ActionEncoderAndDecoder::SH, label, word);
 
   return ret;
 }

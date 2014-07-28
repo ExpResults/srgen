@@ -47,7 +47,10 @@ public:
   // less than
   bool operator < (const StateItem & other) const;
 
+  // greater than
   bool operator > (const StateItem & other) const;
+
+  friend std::ostream & operator << (std::ostream & os, const StateItem & item);
 
   // access
   int stack_top() const;
@@ -61,9 +64,11 @@ public:
 
   const StateItem * previous;
 
-  floatval_t score;         /*< The score for the current state */
+  floatval_t score;
+  // The score for the current state
 
-  std::vector<int> stack;   /*< The stack for the current state */
+  std::vector<int> stack;
+  // The stack for the current state
 
   std::bitset<kMaxNumberOfWords> buffer;
   // The word indices in buffer for current state.
@@ -106,30 +111,54 @@ public:
    */
   void copy(const StateItem & other);
 
+
   /**
    * Perform shift on current state, result in a new state on itself.
    *
-   *  @param[in]  postag_id The index of the PoSTag.
-   *  @param[in]  word_id   The index to the word.
+   *  @param[in]  postag    The PoSTag (represented in integer).
+   *  @param[in]  word      The word (represented in integer).
+   *  @param[in]  word_id   The index of the word in this sentence.
    *  @return     bool      If successfully shift, return true. 
    *                        otherwise false.
    */
   bool shift(postag_t postag,
-      word_t word);
+      word_t word,
+      int word_rank);
+
 
   /**
    * Perform shift on current state and result in a new state.
    *
-   *
+   *  @param[in]  postag    The PoSTag (represented in integer).
+   *  @param[in]  word      The word (represented in integer).
+   *  @param[in]  word_id   The index of the word in this sentence.
+   *  @param[out] other     The resulted in state.
+   *  @return     bool      If successfully shift, return true, 
+   *                        otherwise false
    */
-  bool shift(postag_t postag_id, word_t word, StateItem & other) const; 
+  bool shift(postag_t postag, word_t word,
+      int word_id, StateItem & other) const; 
 
+
+  /**
+   * Perform left arc on current state, result in a new state on itself.
+   *
+   *  @param[in]  deprel    The dependency relation.
+   *  @return     bool      If successfully performed action, return true;
+   *                        Otherwise false.
+   */
   bool left_arc(deprel_t deprel);
 
+  /**
+   */
   bool left_arc(deprel_t deprel, StateItem & other) const;
 
+  /**
+   */
   bool right_arc(deprel_t deprel);
 
+  /**
+   */
   bool right_arc(deprel_t deprel, StateItem & other) const;
 };
 

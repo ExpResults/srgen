@@ -14,25 +14,26 @@ add_executable (srg
     ${SOURCE_DIR}/engine.cc
     ${SOURCE_DIR}/action.cc
     ${SOURCE_DIR}/extractor.cc
+    ${SOURCE_DIR}/weight.cc
     ${SOURCE_DIR}/io.cc
     ${SOURCE_DIR}/pipe.cc
     ${SOURCE_DIR}/state.cc
     ${SOURCE_DIR}/srg.cc)
 
-#target_link_libraries (srg
-#    ${Boost_LIBRARY_DIRS}/libboost_program_options.a
-#    ${Boost_LIBRARY_DIRS}/libboost_log_setup.a
-#    ${Boost_LIBRARY_DIRS}/libboost_log.a
-#    ${Boost_LIBRARY_DIRS}/libboost_regex.a
-#    ${Boost_LIBRARY_DIRS}/libboost_thread.a
-#    ${Boost_LIBRARY_DIRS}/libboost_system.a
-#    pthread)
+add_executable (unittest
+    ${SOURCE_DIR}/engine.cc
+    ${SOURCE_DIR}/test.cc)
 
 target_link_libraries (srg
     boost_program_options
     boost_log_setup
     boost_log
     boost_regex
+    boost_serialization
     boost_thread
     boost_system
+    pthread)
+
+target_link_libraries (unittest
+    boost_serialization
     pthread)

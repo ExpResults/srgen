@@ -1,5 +1,10 @@
 #include "engine.h"
 #include <cstring>
+#include <fstream>
+
+#include "serialization/unordered_map.h"
+#include <boost/archive/text_iarchive.hpp>
+#include <boost/archive/text_oarchive.hpp>
 
 namespace SR {
 
@@ -14,7 +19,7 @@ PoSTagEncoderAndDecoder::PENN_POS_NAME[] = {
    ".", ":", "#",
    "CC", "CD", "DT", "EX", "FW",
    "IN", "JJ", "JJR", "JJS", "LS",
-   "MD", "NN", "NNP", "NNPS", "NNS",
+   "MD", "NN", "NNP", "NNPS", "NNS", "NP",
    "PDT", "POS", "PRP", "PRP$",
    "RB", "RBR", "RBS", "RP",
    "SYM", "TO", "UH",
@@ -152,33 +157,33 @@ ActionEncoderAndDecoder::encode(const char * name) const {
 // The word encoder/decoder
 int
 WordEncoderAndDecoder::insert(const char * name) {
-  map_t::const_iterator itx = name2id.find(name);
+  std::string key(name);
+  map_t::const_iterator itx = name2id.find(key);
+
   if (itx != name2id.end()) {
     return itx->second;
   }
 
-  int len = strlen(name);
-  char * str = new char[len + 1];
-  strcpy(str, name);
-
-  id2name.push_back(str);
-  name2id[str] = grand_id;
+  id2name.push_back(key);
+  name2id[key] = grand_id;
   return grand_id ++;
 }
 
 
 const char *
 WordEncoderAndDecoder::decode(int id) const {
+  // std::cout << id2name.size() << std::endl;
+  // std::cout << id << std::endl;
   if (id < 0 || id >= grand_id) {
-    return id2name[id];
+    return 0;
   }
-  return 0;
+  return id2name.at(id).c_str();
 }
 
 
 int
 WordEncoderAndDecoder::encode(const char * name) const {
-  map_t::const_iterator itx = name2id.find(name);
+  map_t::const_iterator itx = name2id.find(std::string(name));
   if (itx != name2id.end()) {
     return itx->second;
   }
@@ -186,5 +191,36 @@ WordEncoderAndDecoder::encode(const char * name) const {
 }
 
 #undef EQ
+
+bool
+save_word_engine(const char * filename) {
+  std::ofstream ofs(filename);
+  if (!ofs.good()) {
+    return false;
+  }
+  
+  boost::archive::text_oarchive oa(ofs);
+  oa << WordEngine::get_const_instance();
+  ofs.close();
+  return true;
+}
+
+
+bool
+load_word_engine(const char * filename) {
+  std::ifstream ifs(filename);
+  if (!ifs.good()) {
+    return false;
+  }
+
+  WordEngine::get_mutable_instance().id2name.clear();
+  WordEngine::get_mutable_instance().name2id.clear();
+
+  boost::archive::text_iarchive ia(ifs);
+  ia >> WordEngine::get_mutable_instance();
+  ifs.close();
+  return true;
+}
+
 
 }

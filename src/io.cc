@@ -91,5 +91,23 @@ int read_dep_data(std::istream & is,
   return (int)trees.size();
 }
 
+
+void write_dep_instance(std::ostream & os,
+    const dependency_t & parse) {
+  int N = parse.forms.size();
+
+  for (int i = 0; i < N; ++ i) {
+    os << WordEngine::get_const_instance().decode(parse.forms.at(i))
+      << "\t"
+      << PoSTagEngine::get_const_instance().decode(parse.postags.at(i))
+      << "\t"
+      << parse.heads.at(i)
+      << "\t"
+      << DeprelEngine::get_const_instance().decode(parse.deprels.at(i))
+      << std::endl;
+  }
+  os << std::endl;
+}
+
 }   //  end for namespace
 
