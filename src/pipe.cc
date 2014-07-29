@@ -18,8 +18,8 @@ static bool TransitionHeapMore (const Pipe::scored_transition_t & x,
 }
 
 
-Pipe::Pipe() 
-  : max_beam_size(32) {
+Pipe::Pipe(int beam_size) 
+  : max_beam_size(beam_size) {
   // Allocate a very large lattice.
   lattice = new StateItem[kMaxSteps * kMaxBeamSize];
   BOOST_LOG_TRIVIAL(info) << "PIPE lattice["
@@ -235,7 +235,7 @@ void Pipe::work(const sentence_t & sentence,
   StateItem * correct_state = lattice;
 
   int step;
-  for (step = 1; step < steps; ++ step) {
+  for (step = 1; step <= steps; ++ step) {
     // generate state from states in step(i-1) to step(i)
     BOOST_LOG_TRIVIAL(trace) << "|||||||||||| ROUND : " << step << " |||||||||||||";
     int current_beam_size = 0;
@@ -277,6 +277,7 @@ void Pipe::work(const sentence_t & sentence,
     }
 
     lattice_index[step + 1] = lattice_index[step] + current_beam_size;
+
     BOOST_LOG_TRIVIAL(trace) << "[" << current_beam_size << "] is inserted into beam";
 
     if (train_mode) {
@@ -312,6 +313,10 @@ void Pipe::work(const sentence_t & sentence,
     }
   }
 
+  /*BOOST_LOG_TRIVIAL(debug) << "Reach the end of sentence.";
+  BOOST_LOG_TRIVIAL(debug) << (void *)correct_state;
+  BOOST_LOG_TRIVIAL(debug) << "step=" << step;*/
+
   if (train_mode) {
     StateItem * best_to = lattice_index[step- 1];
     for (StateItem * to = lattice_index[step- 1] + 1;
@@ -329,8 +334,8 @@ void Pipe::work(const sentence_t & sentence,
     return;
   }
 
-  StateItem * best_to = lattice_index[steps - 1];
-  for (StateItem * to = lattice_index[steps - 1] + 1;
+  StateItem * best_to = lattice_index[step- 1];
+  for (StateItem * to = lattice_index[step- 1] + 1;
       to != lattice_index[step]; ++ to) {
     if (best_to->score < to->score) {
       best_to = to;
@@ -346,8 +351,8 @@ void Pipe::work(const sentence_t & sentence,
 
   output.clear();
   if (order.size() != N) {
-    BOOST_LOG_TRIVIAL(warning) << "order size : " << order.size();
-    BOOST_LOG_TRIVIAL(warning) << "ORDER is not equal to the sentence size";
+    BOOST_LOG_TRIVIAL(warning) << "ORDER is not equal to the sent size at #" << now;
+    BOOST_LOG_TRIVIAL(warning) << "order size : " << order.size() << " N : " << N;
 
     output.push_back(0, 0, 0, 0);
     return;

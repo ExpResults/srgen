@@ -17,8 +17,22 @@ struct Weight {
 
   bs_map_t    S0wS0la,  S0pS0la;
   bs_map_t    S0wS0ra,  S0pS0ra;
-  bs_map_t    S0wS0ls,  S0pS0ls;
+  // bs_map_t    S0wS0ls,  S0pS0ls;
 
+  us_map_t    S1w,      S1p;
+  us_map_t    S1ldw,    S1ldp;
+  us_map_t    S1lddw,   S1lddp;
+  us_map_t    S1l2dw,   S1l2dp;
+  us_map_t    S1rdw,    S1rdp;
+  us_map_t    S1rddw,   S1rddp;
+  us_map_t    S1r2dw,   S1r2dp;
+
+  bs_map_t    S1wS1la,  S1pS1la;
+  bs_map_t    S1wS1ra,  S1pS1ra;
+  // bs_map_t    S1wS1ls,  S1pS1ls;
+
+  bs_map_t    S0wS1w,   S0pS1p;
+  bs_map_t    S0wS1p,   S0pS1w;
 
   bool flush_weight(int now);
 

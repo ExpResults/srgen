@@ -22,8 +22,32 @@ struct Parameter {
 
   template<class Archive>
   void serialize(Archive & ar, const unsigned int version) {
-    ar & w & w_sum & w_time;
+    ar & w & w_sum;
   }
+
+  floatval_t dot(bool avg) {
+    if (avg) {
+      return w_sum;
+    } else {
+      return w;
+    }
+  }
+
+  void add(int now, floatval_t scale) {
+    int elapsed = now - w_time;
+    floatval_t upd = scale;
+    floatval_t cur_val = w;
+
+    w = cur_val + upd;
+    w_sum += elapsed * cur_val + upd;
+    w_time = now;
+  }
+
+  void flush(int now) {
+    w_sum += (now - w_time) * w;
+    w_time = now;
+  }
+
 };
 
 typedef Parameter param_t;

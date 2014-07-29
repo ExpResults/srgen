@@ -10,7 +10,7 @@ namespace SR {
 
 class Pipe {
 public:
-  Pipe();
+  Pipe(int beam_size);
 
   typedef std::vector<action::action_t> action_collection_t;
   // a list of actions;

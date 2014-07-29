@@ -60,6 +60,7 @@ int main(int argc, char * argv[]) {
     ("reference,t", po::value<std::string>(), "The path to the reference file.")
     ("constrain,c", po::value<std::string>(), "The path to the constraints file.")
     ("display,d", po::value<int>(), "The display interval.")
+    ("beam,b", po::value<int>(), "The size for beam.")
     ("verbose,v", "Logging every detail.")
     ;
 
@@ -78,8 +79,14 @@ int main(int argc, char * argv[]) {
   BOOST_LOG_TRIVIAL(info) << "SHIFT-REDUCE generator v0.1";
   BOOST_LOG_TRIVIAL(info) << "---------------------------";
 
+  // [Parse beam size
+  int beam_size = 32;
+  if (opts.count("beam")) {
+    beam_size = opts["beam"].as<int>();
+  }
+
   // [Allocate a pipe.
-  SR::Pipe pipe = SR::Pipe();
+  SR::Pipe pipe = SR::Pipe(beam_size);
 
   // [Load in the model.
   bool model_loaded = false;
@@ -135,6 +142,7 @@ int main(int argc, char * argv[]) {
     }
   }
 
+  // [Parse display interval
   int display_interval = 1000;
   if (opts.count("display")) {
     display_interval = opts["display"].as<int>();

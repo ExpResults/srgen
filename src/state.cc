@@ -53,7 +53,7 @@ void StateItem::clear() {
   stack.clear();    // clear words in stack
 
   // Push a BEGIN symbol onto the stack.
-  stack.push_back(WordEncoderAndDecoder::BEGIN);
+  stack.push_back(-1);
 
   // Set up heads to no-head
   memset(heads, -1, sizeof(heads));
