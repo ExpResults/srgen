@@ -35,34 +35,15 @@ bool Pipe::save_model(const char * prefix) {
 }
 
 
+void Pipe::finish_training(int now) {
+  weight.flush_weight(now);
+}
+
 bool Pipe::load_model(const char * prefix) {
   std::string chunk(prefix);
 
   return (load_word_engine((chunk + ".word").c_str()) &&
       weight.load_weight((chunk + ".weight").c_str()));
-}
-
-int Pipe::insert_into_beam(StateItem ** beam_wrapper,
-    const StateItem * item,
-    const int current_beam_size,
-    const int max_beam_size) {
-
-  if (current_beam_size == max_beam_size) {
-    // If the beam is full and the smallest element is smaller than the input
-    // element, replace this element with the input element.
-    if ((*item) > (*(*beam_wrapper))) {
-      StateItem * p = beam_wrapper[0];
-      std::pop_heap(beam_wrapper, beam_wrapper + max_beam_size, StateHeapMore);
-      (*p) = (*item);
-      beam_wrapper[max_beam_size - 1] = p;
-      std::push_heap(beam_wrapper, beam_wrapper + max_beam_size, StateHeapMore);
-    }
-    return 0;
-  }
-
-  **(beam_wrapper + current_beam_size) = *(item);
-  std::push_heap(beam_wrapper, beam_wrapper + current_beam_size + 1, StateHeapMore);
-  return 1;
 }
 
 
@@ -92,6 +73,13 @@ int Pipe::extend_candidate_transition(const scored_transition_t & trans,
 }
 
 
+void Pipe::clear_candidate_transition() {
+  for (int i = 0; i < max_beam_size; ++ i) {
+    candidate_transitions[i].get<2>() = -inf;
+  }
+}
+
+
 int Pipe::get_possible_actions(const StateItem & item,
     std::vector<action::action_t> & actions) {
   actions.clear();
@@ -99,7 +87,7 @@ int Pipe::get_possible_actions(const StateItem & item,
   // Generate all possible SHIFT actions, first loop over possible
   // PoSTags.
   for (int i = kStartIndexOfValidPoSTag;
-      i < kNumberOfPoSTags - 1; ++ i) {
+      i < kNumberOfPoSTags; ++ i) {
     // Then loop over the words in the buffer.
     for (int j = 0; j < item.N; ++ j) {
       if (item.buffer.test(j)) {
@@ -109,7 +97,8 @@ int Pipe::get_possible_actions(const StateItem & item,
     }
   }
 
-  if (item.stack.size() >= 2) {
+  if (item.stack.size() > 2) {
+    // There is one pseudo node in the stack
     // Generate LEFT-ARC and RIGHT-ARC actions
     for (int i = kStartIndexOfValidDependencyRelation;
         i < kNumberOfDependencyRelations; ++ i) {
@@ -145,7 +134,7 @@ void Pipe::transit(const StateItem & from,
 }
 
 
-void Pipe::collect_state_chain_and_update_score(
+bool Pipe::collect_state_chain_and_update_score(
     const StateItem * predicted_final_state,
     const StateItem * correct_final_state,
     int now, floatval_t add, floatval_t sub) {
@@ -168,21 +157,25 @@ void Pipe::collect_state_chain_and_update_score(
   if (nr_predicated_states != nr_correct_state) {
     BOOST_LOG_TRIVIAL(warning) << "Number of predicated states is different from "
       << "correct states";
-    exit(1);
+    return false;
   }
 
   // The stored action chain is in reversed order. Take a action chain with
   // 4 states, the order is [4], [3], [2], [1]
 
+  BOOST_LOG_TRIVIAL(trace) << "PREDICATED STATE CHAIN";
   for (int i = nr_predicated_states - 1; i > 0; -- i) {
-    BOOST_LOG_TRIVIAL(trace) << "PRED state chain from "
+    BOOST_LOG_TRIVIAL(trace) << " - [" << i << "]: "
       << (void *)predicted_state_chain[i]
       << " to "
       << (void *)predicted_state_chain[i - 1]
       << " "
       << predicted_state_chain[i - 1]->last_action;
+  }
 
-    BOOST_LOG_TRIVIAL(trace) << "CORR state chain from "
+  BOOST_LOG_TRIVIAL(trace) << "CORRECT STATE CHAIN";
+  for (int i = nr_correct_state - 1; i > 0; -- i) {
+    BOOST_LOG_TRIVIAL(trace) << " - [" << i << "]: "
       << (void *)correct_state_chain[i]
       << " to "
       << (void *)correct_state_chain[i - 1]
@@ -206,6 +199,8 @@ void Pipe::collect_state_chain_and_update_score(
     update_state_score((*predicted_state_chain[i]), predict_action, now, sub);
     update_state_score((*correct_state_chain[i]), correct_action, now, add);
   }
+
+  return true;
 }
 
 
@@ -242,9 +237,10 @@ void Pipe::work(const sentence_t & sentence,
   int step;
   for (step = 1; step < steps; ++ step) {
     // generate state from states in step(i-1) to step(i)
-    // BOOST_LOG_TRIVIAL(trace) << "ROUND : " << step;
-
+    BOOST_LOG_TRIVIAL(trace) << "|||||||||||| ROUND : " << step << " |||||||||||||";
     int current_beam_size = 0;
+
+    clear_candidate_transition();
 
     for (StateItem * from = lattice_index[step - 1]; from != lattice_index[step]; ++ from) {
       BOOST_LOG_TRIVIAL(trace) << "EXTEND from state [" << (void *)from << "]";
@@ -255,24 +251,24 @@ void Pipe::work(const sentence_t & sentence,
       get_state_packed_score((*from), possible_actions, packed_score);
 
       for (int i = 0; i < possible_actions.size(); ++ i) {
-        // BOOST_LOG_TRIVIAL(trace) << "possible-actions: " << possible_actions[i];
         const action::action_t & act = possible_actions[i];
-        BOOST_LOG_TRIVIAL(trace) << "POSSIBLE ACTION : "
-          << (void *)from << ", " << act << ", " << packed_score[act];
+        BOOST_LOG_TRIVIAL(trace) << " - Possible #" << i << ": "
+          << act << ", " << packed_score[act];
 
         current_beam_size += extend_candidate_transition(
-            scored_transition_t(from, act, packed_score[act]),
+            scored_transition_t(from, act, from->score + packed_score[act]),
             current_beam_size, max_beam_size);
       }
     }
 
     // Apply transition.
+    BOOST_LOG_TRIVIAL(trace) << "||||| APPLYING TRANSITION";
     for (int i = 0; i < current_beam_size; ++ i) {
       const scored_transition_t & trans = candidate_transitions[i];
-      BOOST_LOG_TRIVIAL(trace) << "From " << (void *)trans.get<0>()
+      BOOST_LOG_TRIVIAL(trace) << (void *)trans.get<0>()
         << " to " << (void *)(lattice_index[step] + i)
-        << " " << trans.get<1>()
-        << ", score=" << trans.get<2>();
+        << ": " << trans.get<1>()
+        << ", " << trans.get<2>();
 
       transit((*candidate_transitions[i].get<0>()),
           candidate_transitions[i].get<1>(),
@@ -295,7 +291,8 @@ void Pipe::work(const sentence_t & sentence,
       }
 
       if (!correct_state_in_beam) {
-        BOOST_LOG_TRIVIAL(trace) << "Correct state fallout beam at STEP " << step;
+        BOOST_LOG_TRIVIAL(trace) << "Correct state fallout beam at from #"
+          << step - 1 << " to #" << step;
         StateItem * best_to = lattice_index[step];
         for (StateItem * to =lattice_index[step] + 1;
             to != lattice_index[step + 1]; ++ to) {
@@ -306,8 +303,10 @@ void Pipe::work(const sentence_t & sentence,
 
         transit((*correct_state), gold_actions[step-1], 0, (*lattice_index[step+1]));
         // [Update state
-        collect_state_chain_and_update_score(best_to,
-            lattice_index[step+1], now, 1, -1);
+        if (!collect_state_chain_and_update_score(best_to,
+            lattice_index[step+1], now, 1, -1)) {
+          BOOST_LOG_TRIVIAL(warning) << "Failed to update score at #" << now;
+        }
         return;
       }
     }
@@ -320,28 +319,47 @@ void Pipe::work(const sentence_t & sentence,
       if (best_to->score < to->score) {
         best_to = to;
       }
-
-      if (best_to != correct_state) {
-        collect_state_chain_and_update_score(best_to, correct_state, now, 1, -1);
-      }
-      return;
     }
+
+    if (best_to != correct_state) {
+      if (!collect_state_chain_and_update_score(best_to, correct_state, now, 1, -1)) {
+        BOOST_LOG_TRIVIAL(warning) << "Failed to update score at #" << now;
+      }
+    }
+    return;
   }
 
-  StateItem * best_to = lattice_index[step- 1];
-  for (StateItem * to = lattice_index[step- 1] + 1;
+  StateItem * best_to = lattice_index[steps - 1];
+  for (StateItem * to = lattice_index[steps - 1] + 1;
       to != lattice_index[step]; ++ to) {
     if (best_to->score < to->score) {
       best_to = to;
     }
   }
 
+  std::vector<int> order;
+  for (const StateItem * p = best_to; p->previous; p = p->previous) {
+    if (action::is_shift(p->last_action)) {
+      order.push_back(p->last_action.index);
+    }
+  }
+
   output.clear();
+  if (order.size() != N) {
+    BOOST_LOG_TRIVIAL(warning) << "order size : " << order.size();
+    BOOST_LOG_TRIVIAL(warning) << "ORDER is not equal to the sentence size";
+
+    output.push_back(0, 0, 0, 0);
+    return;
+  }
+
+  std::reverse(order.begin(), order.end());
   for (int i = 0; i < N; ++ i) {
-    output.forms.push_back(sentence[i]);
-    output.postags.push_back(best_to->postags[i]);
-    output.heads.push_back(best_to->heads[i]);
-    output.deprels.push_back(best_to->deprels[i]);
+    int j = order[i];
+    output.push_back(sentence[j],
+        best_to->postags[j], 
+        best_to->heads[j],
+        best_to->deprels[j]);
   }
 }
 

@@ -59,7 +59,7 @@ void StateItem::clear() {
   memset(heads, -1, sizeof(heads));
 
   // Set up deprel to no-relation
-  memset(deprels, -1, sizeof(deprels));
+  memset(deprels, 0, sizeof(deprels));
 
   // Set up number of left- and right-children to zero.
   memset(nr_left_children, 0, sizeof(nr_left_children));
@@ -102,6 +102,8 @@ void StateItem::copy(const StateItem & other) {
   _COPY(left_2nd_most_child);
   _COPY(right_most_child);
   _COPY(right_2nd_most_child);
+  _COPY(nr_left_children);
+  _COPY(nr_right_children);
   #undef _COPY
 }
 
@@ -135,8 +137,12 @@ bool StateItem::shift(postag_t label, word_t word, int index,
     StateItem & other) const {
   other.copy((*this));
   bool ret = other.shift(label, word, index);
-  other.previous = this;
-  other.last_action = action::action_t(ActionEncoderAndDecoder::SH, label, word);
+  if (ret) {
+    other.previous = this;
+    other.last_action = action::action_t(ActionEncoderAndDecoder::SH, label, word, index);
+  } else {
+    other.clear();
+  }
 
   return ret;
 }
@@ -184,8 +190,14 @@ bool StateItem::left_arc(deprel_t deprel) {
 bool StateItem::left_arc(deprel_t deprel, StateItem & other) const {
   other.copy((*this));
   bool ret = other.left_arc(deprel);
-  other.previous = this;
-  other.last_action = action::action_t(ActionEncoderAndDecoder::LA, deprel, 0);
+
+  if (ret) {
+    other.previous = this;
+    other.last_action = action::action_t(ActionEncoderAndDecoder::LA, deprel, 0);
+  } else {
+    other.clear();
+  }
+
   return ret;
 }
 
@@ -226,8 +238,13 @@ bool StateItem::right_arc(deprel_t deprel) {
 bool StateItem::right_arc(deprel_t deprel, StateItem & other) const {
   other.copy((*this));
   bool ret = other.right_arc(deprel);
-  other.previous = this;
-  other.last_action = action::action_t(ActionEncoderAndDecoder::RA, deprel, 0);
+  
+  if (ret) {
+    other.previous = this;
+    other.last_action = action::action_t(ActionEncoderAndDecoder::RA, deprel, 0);
+  } else {
+    other.clear();
+  }
   return ret;
 }
 

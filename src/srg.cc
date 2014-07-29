@@ -1,9 +1,13 @@
 #include <iostream>
 #include <fstream>
-#include "boost/program_options.hpp"
-#include "boost/log/core.hpp"
-#include "boost/log/trivial.hpp"
-#include "boost/log/expressions.hpp"
+#include <boost/program_options.hpp>
+#include <boost/log/utility/setup/common_attributes.hpp>
+#include <boost/log/core.hpp>
+#include <boost/log/trivial.hpp>
+#include <boost/log/expressions.hpp>
+#include <boost/log/utility/setup/console.hpp>
+#include <boost/log/utility/setup/common_attributes.hpp>
+#include <boost/log/support/date_time.hpp>
 
 #include "io.h"
 #include "pipe.h"
@@ -11,11 +15,35 @@
 #include "settings.h"
 #include "debug.h"
 
-void init_boost_log() {
+void init_boost_log(bool verbose) {
   namespace logging = boost::log;
-  logging::core::get()->set_filter (
-      logging::trivial::severity > logging::trivial::trace
+  namespace src = boost::log::sources;
+  namespace expr = boost::log::expressions;
+  namespace keywords = boost::log::keywords;
+
+  logging::add_console_log (
+      std::clog,
+      keywords::format = (
+        expr::stream
+          << expr::format_date_time< boost::posix_time::ptime >(
+            "TimeStamp", 
+            "%Y-%m-%d %H:%M:%S")
+          << " [" << logging::trivial::severity << "] "
+          << expr::smessage
+        )
       );
+
+  if (verbose) {
+    logging::core::get()->set_filter (
+        logging::trivial::severity >= logging::trivial::trace
+        );
+  } else {
+    logging::core::get()->set_filter (
+        logging::trivial::severity > logging::trivial::trace
+        );
+  }
+
+  logging::add_common_attributes();
 }
 
 int main(int argc, char * argv[]) {
@@ -31,6 +59,8 @@ int main(int argc, char * argv[]) {
     ("output,o", po::value<std::string>(), "The path to the output file.")
     ("reference,t", po::value<std::string>(), "The path to the reference file.")
     ("constrain,c", po::value<std::string>(), "The path to the constraints file.")
+    ("display,d", po::value<int>(), "The display interval.")
+    ("verbose,v", "Logging every detail.")
     ;
 
   po::variables_map opts;
@@ -42,7 +72,7 @@ int main(int argc, char * argv[]) {
   }
 
   // [initialize the boost logging
-  init_boost_log();
+  init_boost_log(opts.count("verbose") != 0);
 
   BOOST_LOG_TRIVIAL(info) << "";
   BOOST_LOG_TRIVIAL(info) << "SHIFT-REDUCE generator v0.1";
@@ -105,6 +135,11 @@ int main(int argc, char * argv[]) {
     }
   }
 
+  int display_interval = 1000;
+  if (opts.count("display")) {
+    display_interval = opts["display"].as<int>();
+  }
+
   std::ofstream ofs;
   bool use_stdout = true;
   if (!train_mode && opts.count("output")) {
@@ -129,10 +164,10 @@ int main(int argc, char * argv[]) {
 
     if (train_mode) {
       SR::action::get_correct_actions(trees[i], gold_actions);
-      BOOST_LOG_TRIVIAL(info) << "GOT gold actions for #" << i << " inst.";
 
+      BOOST_LOG_TRIVIAL(trace) << "GOT gold actions for #" << i << " inst.";
       for (int j = 0; j < gold_actions.size(); ++ j) {
-        BOOST_LOG_TRIVIAL(trace) << "GOLD ACTION step#" << j << ": " << gold_actions[j];
+        BOOST_LOG_TRIVIAL(trace) << "GOLD action step #" << j << " : " << gold_actions[j];
       }
     }
 
@@ -145,9 +180,14 @@ int main(int argc, char * argv[]) {
         SR::write_dep_instance(ofs, parse);
       }
     }
+
+    if ((i + 1) % display_interval == 0) {
+      BOOST_LOG_TRIVIAL(info) << "PARSED #" << (i + 1) << " instances.";
+    }
   }
 
   if (train_mode) {
+    pipe.finish_training(data.size() + 1);
     pipe.save_model(opts["model"].as<std::string>().c_str());
     BOOST_LOG_TRIVIAL(info) << "MODEL saved.";
   }

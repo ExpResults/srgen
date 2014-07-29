@@ -48,6 +48,9 @@ public:
       int now);
 
   //
+  void finish_training(int now);
+
+  //
   bool save_model(const char * prefix);
 
   //
@@ -110,6 +113,13 @@ private:
       const int current_beam_size,
       const int max_beam_size);
 
+  /**
+   *
+   *
+   *
+   *
+   */
+  void clear_candidate_transition();
 
   /**
    * Perform the certain transition.
@@ -129,7 +139,7 @@ private:
    *
    *
    */
-  void collect_state_chain_and_update_score(const StateItem * predicted_state,
+   bool collect_state_chain_and_update_score(const StateItem * predicted_state,
       const StateItem * correct_state, int now, floatval_t add, floatval_t sub);
 
 private:

@@ -16,14 +16,16 @@ public:
   // The default constructor,
   StateItem()
     : sentence_ref(0),
-    N(0) {
+    N(0),
+    C(0) {
     clear();
   }
 
   // The constructor with sentence reference.
   StateItem(const sentence_t * _sentence_ref)
     : sentence_ref(_sentence_ref),
-    N(_sentence_ref->size()) {
+    N(_sentence_ref->size()),
+    C(0) {
     clear();
   }
 

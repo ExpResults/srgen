@@ -70,6 +70,8 @@ const int kNumberOfDependencyRelations = DeprelsEncoderAndDecoder::kMaxIndexOfDe
 const int kMaxBeamSize = 128;
 
 const int kMaxSteps = kMaxNumberOfWords * 2;
+
+const floatval_t inf = 1e20;
 }
 
 #endif  // end for __SR_SETTINGS_H__
