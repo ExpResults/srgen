@@ -5,8 +5,11 @@
 #include "state.h"
 #include "settings.h"
 #include "weight.h"
+#include "constraint.h"
 
-namespace SR {
+namespace ZGen {
+
+namespace ShiftReduce {
 
 class Pipe {
 public:
@@ -155,8 +158,11 @@ private:
   weight_t weight;
 
   scored_transition_t candidate_transitions[kMaxBeamSize];
+
+  constraint_t constraint;
 };
 
 }
 
+}
 #endif  //  end for __SR_PIPE_H__

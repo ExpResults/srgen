@@ -10,7 +10,9 @@
 #include <boost/serialization/split_member.hpp>
 #include <boost/serialization/singleton.hpp>
 
-namespace SR {
+namespace ZGen {
+
+namespace ShiftReduce {
 
 // Use to encode PoSTag name into integer and decode integer
 // into PoSTag name.
@@ -27,7 +29,7 @@ public:
     NONE = 0, BEGIN, END,
     DOLLAR, L_QUOTE, R_QUOTE,
     L_BRACKET, R_BRACKET, COMMA,
-    PERIOD, COLUM, SHART,
+    PERIOD, COLUM, SHARP,
     CC, CD, DT, EX, FW,
     IN, JJ, JJR, JJS, LS,
     MD, NN, NNP, NNPS, NNS, NP,
@@ -168,4 +170,5 @@ bool load_word_engine(const char * filename);
 
 }
 
+}
 #endif  //  end for __SR_ENGINE_H__

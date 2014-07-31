@@ -3,7 +3,9 @@
 
 #include "settings.h"
 
-namespace SR {
+namespace ZGen {
+
+namespace ShiftReduce {
 
 int read_raw_data(std::istream & is,
     std::vector< sentence_t > & data);
@@ -16,4 +18,5 @@ void write_dep_instance(std::ostream & os,
 
 }
 
+}
 #endif  //  end for __SR_IO_H__

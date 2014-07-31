@@ -5,7 +5,9 @@
 
 #include <boost/log/trivial.hpp>
 
-namespace SR {
+namespace ZGen {
+
+namespace ShiftReduce {
 
 namespace action {
 
@@ -82,4 +84,7 @@ int get_correct_actions_travel(int root,
 }
 
 }
+
+}
+
 }

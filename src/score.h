@@ -10,7 +10,9 @@
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/archive/text_oarchive.hpp>
 
-namespace SR {
+namespace ZGen {
+
+namespace ShiftReduce {
 
 // Unigram
 struct UnigramScore {
@@ -113,6 +115,8 @@ struct TrigramScore {
 typedef UnigramScore  us_t;
 typedef BigramScore   bs_t;
 typedef TrigramScore  ts_t;
+
+}
 
 }
 

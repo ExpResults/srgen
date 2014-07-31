@@ -10,7 +10,9 @@
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/archive/text_oarchive.hpp>
 
-namespace SR {
+namespace ZGen {
+
+namespace ShiftReduce {
 
 namespace action {
 
@@ -166,4 +168,7 @@ int get_correct_actions_travel(int root,
 }
 
 }
+
+}
+
 #endif  //  end for __SR_ACTION_HPP__

@@ -7,7 +7,9 @@
 
 #include "engine.h"
 
-namespace SR {
+namespace ZGen {
+
+namespace ShiftReduce {
 
 // Type define
 typedef int                                       word_t;
@@ -74,4 +76,5 @@ const int kMaxSteps = kMaxNumberOfWords * 2;
 const floatval_t inf = 1e20;
 }
 
+}
 #endif  // end for __SR_SETTINGS_H__

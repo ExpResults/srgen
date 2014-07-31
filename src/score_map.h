@@ -6,7 +6,9 @@
 #include "score.h"
 #include "param.h"
 
-namespace SR {
+namespace ZGen {
+
+namespace ShiftReduce {
 
 typedef boost::unordered_map<UnigramScore, param_t> UnigramScoreMap;
 typedef boost::unordered_map<BigramScore, param_t> BigramScoreMap;
@@ -18,4 +20,5 @@ typedef TrigramScoreMap ts_map_t;
 
 }
 
+}
 #endif  //  end for __SR_SCORE_MAP_H__

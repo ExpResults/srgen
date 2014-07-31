@@ -7,7 +7,9 @@
 #include "settings.h"
 #include "engine.h"
 
-namespace SR {
+namespace ZGen {
+
+namespace ShiftReduce {
 
 /**
  * Read tokens from file and store them in the data structure
@@ -111,3 +113,4 @@ void write_dep_instance(std::ostream & os,
 
 }   //  end for namespace
 
+}   //  end for namespace ZGen

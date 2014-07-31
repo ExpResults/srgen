@@ -4,7 +4,12 @@
 #include "state.h"
 #define _LEGEAL_RANGE_(x) (((x) >= 0) && ((x) < N))
 
-namespace SR {
+namespace ZGen {
+
+namespace ShiftReduce {
+
+const int kNoneWord = WordEncoderAndDecoder::NONE;
+const int kNonePoSTag = PoSTagEncoderAndDecoder::NONE;
 
 struct Context {
   Context(const StateItem & item) {
@@ -18,6 +23,8 @@ struct Context {
       S0p = item.postags[S0];
       S0la = item.nr_left_children[S0];
       S0ra = item.nr_right_children[S0];
+      S0ls = item.nr_left_descendant[S0];
+      S0rs = item.nr_right_descendant[S0];
 
       if ( _LEGEAL_RANGE_(item.left_most_child[S0]) ) {
         int S0ld = item.left_most_child[S0];
@@ -101,6 +108,10 @@ struct Context {
       S0r2dp = PoSTagEncoderAndDecoder::NONE;
       S0rddw = WordEncoderAndDecoder::NONE;
       S0rddp = PoSTagEncoderAndDecoder::NONE;
+      S0la = 0;
+      S0ra = 0;
+      S0ls = 0;
+      S0rs = 0;
     }
 
     if (item.stack.size() > 2) {
@@ -109,8 +120,10 @@ struct Context {
 
       S1w = item.sentence_ref->at(S1);
       S1p = item.postags[S1];
-      S1la = item.nr_left_children[S0];
-      S1ra = item.nr_right_children[S0];
+      S1la = item.nr_left_children[S1];
+      S1ra = item.nr_right_children[S1];
+      S1ls = item.nr_left_descendant[S1];
+      S1rs = item.nr_right_descendant[S1];
 
       if ( _LEGEAL_RANGE_(item.left_most_child[S1]) ) {
         int S1ld = item.left_most_child[S1];
@@ -191,7 +204,25 @@ struct Context {
       S1r2dw = WordEncoderAndDecoder::NONE;
       S1r2dp = PoSTagEncoderAndDecoder::NONE;
       S1rddw = WordEncoderAndDecoder::NONE;
-      S0rddp = PoSTagEncoderAndDecoder::NONE;
+      S1rddp = PoSTagEncoderAndDecoder::NONE;
+      S1la = 0;
+      S1ra = 0;
+      S1ls = 0;
+      S1rs = 0;
+    }
+
+    // SHIFTED words
+    // item.word_sequence.size() should be equal to item.postag_sequence.size()
+    int C = item.word_sequence.size();
+
+    W0 = item.word_sequence[C - 1];
+    P0 = item.postag_sequence[C - 1];
+
+    _has_W1 = false;
+    if (C > 1) {
+      _has_W1 = true;
+      W1 = item.word_sequence[C - 2];
+      P1 = item.postag_sequence[C - 2];
     }
   }
 
@@ -203,17 +234,29 @@ struct Context {
     return _has_S1;
   }
 
+  bool has_W1() const {
+    return _has_S1;
+  }
+
   bool      _is_begin_state;
   bool      _has_S1;
+  bool      _has_W1;
 
   word_t    S0w, S0ldw, S0rdw, S0lddw, S0rddw, S0l2dw, S0r2dw;
   postag_t  S0p, S0ldp, S0rdp, S0lddp, S0rddp, S0l2dp, S0r2dp;
   int       S0la, S0ra;
+  int       S0ls, S0rs;
 
   word_t    S1w, S1ldw, S1rdw, S1lddw, S1rddw, S1l2dw, S1r2dw;
   postag_t  S1p, S1ldp, S1rdp, S1lddp, S1rddp, S1l2dp, S1r2dp;
   int       S1la, S1ra;
+  int       S1ls, S1rs;
+
+  word_t    W0, W1;
+  postag_t  P0, P1;
 };
+
+}
 
 }
 

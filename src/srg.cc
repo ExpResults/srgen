@@ -85,11 +85,14 @@ int main(int argc, char * argv[]) {
     beam_size = opts["beam"].as<int>();
   }
 
-  // [Allocate a pipe.
+  namespace SR = ZGen::ShiftReduce;
+
+    // [Allocate a pipe.
   SR::Pipe pipe = SR::Pipe(beam_size);
 
   // [Load in the model.
   bool model_loaded = false;
+  BOOST_LOG_TRIVIAL(info) << "LOAD model from : " << opts["model"].as<std::string>();
   if (!pipe.load_model(opts["model"].as<std::string>().c_str())) {
     BOOST_LOG_TRIVIAL(info) << "MODEL not exists.";
   } else {
@@ -177,6 +180,8 @@ int main(int argc, char * argv[]) {
       for (int j = 0; j < gold_actions.size(); ++ j) {
         BOOST_LOG_TRIVIAL(trace) << "GOLD action step #" << j << " : " << gold_actions[j];
       }
+    } else {
+      std::random_shuffle( sentence.begin(), sentence.end());
     }
 
     pipe.work(sentence, gold_actions, parse, i + 1);

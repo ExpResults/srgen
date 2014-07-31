@@ -5,7 +5,9 @@
 #include <boost/log/trivial.hpp>
 #include <boost/assert.hpp>
 
-namespace SR {
+namespace ZGen {
+
+namespace ShiftReduce {
 
 static bool StateHeapMore (const StateItem * x, const StateItem * y) {
   return x->score > y->score;
@@ -38,6 +40,7 @@ bool Pipe::save_model(const char * prefix) {
 void Pipe::finish_training(int now) {
   weight.flush_weight(now);
 }
+
 
 bool Pipe::load_model(const char * prefix) {
   std::string chunk(prefix);
@@ -84,14 +87,22 @@ int Pipe::get_possible_actions(const StateItem & item,
     std::vector<action::action_t> & actions) {
   actions.clear();
 
-  // Generate all possible SHIFT actions, first loop over possible
-  // PoSTags.
-  for (int i = kStartIndexOfValidPoSTag;
-      i < kNumberOfPoSTags; ++ i) {
-    // Then loop over the words in the buffer.
-    for (int j = 0; j < item.N; ++ j) {
-      if (item.buffer.test(j)) {
-        actions.push_back(action::action_t(ActionEncoderAndDecoder::SH, i,
+  // Then loop over the words in the buffer.
+  for (int j = 0; j < item.N; ++ j) {
+    if (item.buffer.test(j)) {
+
+      // Generate all possible SHIFT actions, first loop over possible PoSTags.
+      const char * name = WordEngine::get_const_instance().decode(item.sentence_ref->at(j));
+
+      std::vector< postag_t > possible_tags;
+
+      constraint.possible_tags_for_word(name, possible_tags);
+
+      for (int i = 0; i < possible_tags.size(); ++ i) {
+      // for (int i = kStartIndexOfValidPoSTag;
+      //    i < kNumberOfPoSTags; ++ i) {
+        postag_t tag = possible_tags[i];
+        actions.push_back(action::action_t(ActionEncoderAndDecoder::SH, tag,
               (*item.sentence_ref)[j], j));
       }
     }
@@ -142,7 +153,7 @@ bool Pipe::collect_state_chain_and_update_score(
   const StateItem * correct_state_chain[kMaxSteps];
 
   int nr_predicated_states = 0;
-  int nr_correct_state = 0;
+  int nr_correct_states = 0;
 
   for (const StateItem * p = predicted_final_state; p; p = p->previous) {
     predicted_state_chain[nr_predicated_states] = p;
@@ -150,13 +161,14 @@ bool Pipe::collect_state_chain_and_update_score(
   }
 
   for (const StateItem * p = correct_final_state; p; p = p->previous) {
-    correct_state_chain[nr_correct_state] = p;
-    nr_correct_state ++;
+    correct_state_chain[nr_correct_states] = p;
+    nr_correct_states ++;
   }
 
-  if (nr_predicated_states != nr_correct_state) {
-    BOOST_LOG_TRIVIAL(warning) << "Number of predicated states is different from "
-      << "correct states";
+  if (nr_predicated_states != nr_correct_states) {
+    BOOST_LOG_TRIVIAL(warning) << "Number of predicated states("
+      << nr_predicated_states << ")"
+      << " is different from correct states(" << nr_correct_states << ")";
     return false;
   }
 
@@ -174,7 +186,7 @@ bool Pipe::collect_state_chain_and_update_score(
   }
 
   BOOST_LOG_TRIVIAL(trace) << "CORRECT STATE CHAIN";
-  for (int i = nr_correct_state - 1; i > 0; -- i) {
+  for (int i = nr_correct_states - 1; i > 0; -- i) {
     BOOST_LOG_TRIVIAL(trace) << " - [" << i << "]: "
       << (void *)correct_state_chain[i]
       << " to "
@@ -184,7 +196,7 @@ bool Pipe::collect_state_chain_and_update_score(
   }
 
   int i;
-  for (i = nr_correct_state - 1; i >= 0; -- i) {
+  for (i = nr_correct_states - 1; i >= 0; -- i) {
     if (predicted_state_chain[i]->last_action != correct_state_chain[i]->last_action) {
       break;
     }
@@ -238,6 +250,7 @@ void Pipe::work(const sentence_t & sentence,
   for (step = 1; step <= steps; ++ step) {
     // generate state from states in step(i-1) to step(i)
     BOOST_LOG_TRIVIAL(trace) << "|||||||||||| ROUND : " << step << " |||||||||||||";
+
     int current_beam_size = 0;
 
     clear_candidate_transition();
@@ -253,7 +266,7 @@ void Pipe::work(const sentence_t & sentence,
       for (int i = 0; i < possible_actions.size(); ++ i) {
         const action::action_t & act = possible_actions[i];
         BOOST_LOG_TRIVIAL(trace) << " - Possible #" << i << ": "
-          << act << ", " << packed_score[act];
+          << act << ", " << from->score + packed_score[act];
 
         current_beam_size += extend_candidate_transition(
             scored_transition_t(from, act, from->score + packed_score[act]),
@@ -279,6 +292,10 @@ void Pipe::work(const sentence_t & sentence,
     lattice_index[step + 1] = lattice_index[step] + current_beam_size;
 
     BOOST_LOG_TRIVIAL(trace) << "[" << current_beam_size << "] is inserted into beam";
+
+    if (current_beam_size == 0) {
+      BOOST_LOG_TRIVIAL(warning) << "CURRENT Beam size is ZERO!";
+    }
 
     if (train_mode) {
       //
@@ -306,7 +323,7 @@ void Pipe::work(const sentence_t & sentence,
         // [Update state
         if (!collect_state_chain_and_update_score(best_to,
             lattice_index[step+1], now, 1, -1)) {
-          BOOST_LOG_TRIVIAL(warning) << "Failed to update score at #" << now;
+          BOOST_LOG_TRIVIAL(warning) << "Failed to update score (cond i) at #" << now;
         }
         return;
       }
@@ -328,7 +345,7 @@ void Pipe::work(const sentence_t & sentence,
 
     if (best_to != correct_state) {
       if (!collect_state_chain_and_update_score(best_to, correct_state, now, 1, -1)) {
-        BOOST_LOG_TRIVIAL(warning) << "Failed to update score at #" << now;
+        BOOST_LOG_TRIVIAL(warning) << "Failed to update score (cond ii) at #" << now;
       }
     }
     return;
@@ -368,4 +385,5 @@ void Pipe::work(const sentence_t & sentence,
   }
 }
 
+}
 }

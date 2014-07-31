@@ -4,7 +4,9 @@
 #include "settings.h"
 #include "score_map.h"
 
-namespace SR {
+namespace ZGen {
+
+namespace ShiftReduce {
 
 struct Weight {
   us_map_t    S0w,      S0p;
@@ -17,7 +19,8 @@ struct Weight {
 
   bs_map_t    S0wS0la,  S0pS0la;
   bs_map_t    S0wS0ra,  S0pS0ra;
-  // bs_map_t    S0wS0ls,  S0pS0ls;
+  bs_map_t    S0wS0ls,  S0pS0ls;
+  bs_map_t    S0wS0rs,  S0pS0rs;
 
   us_map_t    S1w,      S1p;
   us_map_t    S1ldw,    S1ldp;
@@ -29,10 +32,15 @@ struct Weight {
 
   bs_map_t    S1wS1la,  S1pS1la;
   bs_map_t    S1wS1ra,  S1pS1ra;
-  // bs_map_t    S1wS1ls,  S1pS1ls;
+  bs_map_t    S1wS1ls,  S1pS1ls;
+  bs_map_t    S1wS1rs,  S1pS1rs;
 
   bs_map_t    S0wS1w,   S0pS1p;
   bs_map_t    S0wS1p,   S0pS1w;
+
+  us_map_t    W0, P0;
+  bs_map_t    W0W1, P0P1;
+
 
   bool flush_weight(int now);
 
@@ -76,6 +84,8 @@ void flush_score(Mapped & mapped, const Entry & entry, int now) {
   param_t & param = mapped[entry];
 
   param.flush(now);
+}
+
 }
 
 }

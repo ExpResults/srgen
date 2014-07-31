@@ -7,6 +7,8 @@
 static void
 debug_word_engine() {
   // Dump the word engine.
+  namespace SR = ZGen::ShiftReduce;
+
   BOOST_LOG_TRIVIAL(trace) << "DEBUGING SR::WordEngine";
 
   for (int i = 0; i < SR::WordEngine::get_mutable_instance().id2name.size(); ++ i) {

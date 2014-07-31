@@ -3,7 +3,9 @@
 #include "engine.h"
 #include "action.h"
 
-namespace SR {
+namespace ZGen {
+
+namespace ShiftReduce {
 
 std::ostream & operator << (std::ostream & os, const StateItem & item) {
   os << "ADDRESS:   " << (void *)(&item)  << std::endl;
@@ -55,16 +57,35 @@ void StateItem::clear() {
   // Push a BEGIN symbol onto the stack.
   stack.push_back(-1);
 
+  word_sequence.clear();
+  //
+
+  word_sequence.push_back(WordEncoderAndDecoder::BEGIN);
+  //
+
+  postag_sequence.clear();
+  //
+
+  postag_sequence.push_back(PoSTagEncoderAndDecoder::BEGIN);
+  //
+
   // Set up heads to no-head
   memset(heads, -1, sizeof(heads));
 
   // Set up deprel to no-relation
   memset(deprels, 0, sizeof(deprels));
 
+  // Set up postags to no-postags
+  memset(postags, 0, sizeof(postags));
+
   // Set up number of left- and right-children to zero.
   memset(nr_left_children, 0, sizeof(nr_left_children));
 
   memset(nr_right_children, 0, sizeof(nr_right_children));
+
+  memset(nr_left_descendant, 0, sizeof(nr_left_descendant));
+
+  memset(nr_right_descendant, 0, sizeof(nr_right_descendant));
 
   // Set up the left-most and right-most child
   memset(left_most_child, -1, sizeof(left_most_child));
@@ -80,7 +101,6 @@ void StateItem::clear() {
 
 void StateItem::copy(const StateItem & other) {
   N = other.N;
-  C = other.C;
 
   sentence_ref = other.sentence_ref;
 
@@ -88,13 +108,17 @@ void StateItem::copy(const StateItem & other) {
 
   stack = other.stack;
 
+  word_sequence = other.word_sequence;
+
+  postag_sequence = other.postag_sequence;
+
   buffer = other.buffer;
 
   score = other.score;
 
   last_action = other.last_action;
 
-  #define _COPY(name) memcpy((name), other.name, sizeof(int) * C);
+  #define _COPY(name) memcpy((name), other.name, sizeof(name));
   _COPY(postags);
   _COPY(heads);
   _COPY(deprels);
@@ -104,6 +128,8 @@ void StateItem::copy(const StateItem & other) {
   _COPY(right_2nd_most_child);
   _COPY(nr_left_children);
   _COPY(nr_right_children);
+  _COPY(nr_left_descendant);
+  _COPY(nr_right_descendant);
   #undef _COPY
 }
 
@@ -120,14 +146,17 @@ bool StateItem::shift(postag_t label, word_t word, int index) {
   // Push the word onto the stack
   stack.push_back(index);
 
+  // Append the word and postag to the certain sequence.
+  word_sequence.push_back( word );
+
+  //
+  postag_sequence.push_back( label );
+
   // Erase this word.
   buffer.flip(index);
 
   // Set up the postag.
   postags[index] = label;
-
-  // Increase the number of word processed.
-  ++ C;
 
   return true;
 }
@@ -184,6 +213,7 @@ bool StateItem::left_arc(deprel_t deprel) {
   }
 
   ++ nr_left_children[top0];
+  nr_left_descendant[top0] += (nr_left_descendant[top1] + nr_right_descendant[top1] + 1);
   return true;
 }
 
@@ -232,6 +262,7 @@ bool StateItem::right_arc(deprel_t deprel) {
   }
 
   ++ nr_right_children[top1];
+  nr_right_descendant[top1] += (nr_right_descendant[top0] + nr_left_descendant[top0] + 1);
   return true;
 }
 
@@ -248,5 +279,6 @@ bool StateItem::right_arc(deprel_t deprel, StateItem & other) const {
   return ret;
 }
 
+} //  end for namespace ShiftReduce
 
 } //  end for namespace

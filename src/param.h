@@ -6,7 +6,9 @@
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/archive/text_oarchive.hpp>
 
-namespace SR {
+namespace ZGen {
+
+namespace ShiftReduce {
 
 struct Parameter {
   Parameter()  : w(0), w_sum(0), w_time(0) {}
@@ -54,4 +56,5 @@ typedef Parameter param_t;
 
 }
 
+}
 #endif  //  end for __SR_PARAM_H__

@@ -8,7 +8,9 @@
 #include "settings.h"
 #include "action.h"
 
-namespace SR {
+namespace ZGen {
+
+namespace ShiftReduce {
 
 class StateItem {
 
@@ -16,16 +18,14 @@ public:
   // The default constructor,
   StateItem()
     : sentence_ref(0),
-    N(0),
-    C(0) {
+    N(0) {
     clear();
   }
 
   // The constructor with sentence reference.
   StateItem(const sentence_t * _sentence_ref)
     : sentence_ref(_sentence_ref),
-    N(_sentence_ref->size()),
-    C(0) {
+    N(_sentence_ref->size()) {
     clear();
   }
 
@@ -59,7 +59,6 @@ public:
 
 public:
   int N;  // The total number of word for thesentence.
-  int C;  // The position current processed.
 
   const sentence_t    * sentence_ref;
   // The reference to the sentence
@@ -71,6 +70,12 @@ public:
 
   std::vector<int> stack;
   // The stack for the current state
+
+  std::vector< word_t >   word_sequence;
+  //
+
+  std::vector< postag_t > postag_sequence;
+  //
 
   std::bitset<kMaxNumberOfWords> buffer;
   // The word indices in buffer for current state.
@@ -89,6 +94,12 @@ public:
 
   int nr_right_children[kMaxNumberOfWords];
   // The number of right children.
+
+  int nr_left_descendant[kMaxNumberOfWords];
+  // The sum of left children
+
+  int nr_right_descendant[kMaxNumberOfWords];
+  // The sum of right children
 
   int left_most_child[kMaxNumberOfWords];
   // CACHE: use to store the left most child for the word.
@@ -166,4 +177,5 @@ public:
 
 } //  end for namespace
 
+} //  end for namespace ZGen
 #endif  //  end for __SR_STATE_HPP__

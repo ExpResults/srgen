@@ -6,7 +6,9 @@
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/archive/text_oarchive.hpp>
 
-namespace SR {
+namespace ZGen {
+
+namespace ShiftReduce {
 
 // The PoSTag encoder/decoder
 const char *
@@ -51,7 +53,7 @@ PoSTagEncoderAndDecoder::encode(const char * name) const {
   else if (EQ(","))       { return COMMA;     }
   else if (EQ("."))       { return PERIOD;    }
   else if (EQ(":"))       { return COLUM;     }
-  else if (EQ("#"))       { return SHART;     }
+  else if (EQ("#"))       { return SHARP;     }
   else if (EQ("CC"))      { return CC;        }
   else if (EQ("CD"))      { return CD;        }
   else if (EQ("DT"))      { return DT;        }
@@ -222,5 +224,7 @@ load_word_engine(const char * filename) {
   return true;
 }
 
+
+}
 
 }
