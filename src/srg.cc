@@ -59,6 +59,7 @@ int main(int argc, char * argv[]) {
     ("output,o", po::value<std::string>(), "The path to the output file.")
     ("reference,t", po::value<std::string>(), "The path to the reference file.")
     ("constrain,c", po::value<std::string>(), "The path to the constraints file.")
+    ("posdict,p", po::value<std::string>(), "The path to the postag dict.")
     ("display,d", po::value<int>(), "The display interval.")
     ("beam,b", po::value<int>(), "The size for beam.")
     ("verbose,v", "Logging every detail.")
@@ -87,8 +88,16 @@ int main(int argc, char * argv[]) {
 
   namespace SR = ZGen::ShiftReduce;
 
-    // [Allocate a pipe.
-  SR::Pipe pipe = SR::Pipe(beam_size);
+  // [Allocate a pipe.
+  const char * postag_dict_path = NULL;
+  if (opts.count("posdict")) {
+    postag_dict_path = opts["posdict"].as<std::string>().c_str();
+    BOOST_LOG_TRIVIAL(info) << "Load PoSTag dict from : " << postag_dict_path;
+  } else {
+    BOOST_LOG_TRIVIAL(warning) << "NO PoSTag Dict is specified. Decoding maybe slow";
+  }
+
+  SR::Pipe pipe = SR::Pipe(postag_dict_path, beam_size);
 
   // [Load in the model.
   bool model_loaded = false;

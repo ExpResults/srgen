@@ -153,7 +153,7 @@ bool StateItem::shift(postag_t label, word_t word, int index) {
   postag_sequence.push_back( label );
 
   // Erase this word.
-  buffer.flip(index);
+  buffer.set(index, 0);
 
   // Set up the postag.
   postags[index] = label;

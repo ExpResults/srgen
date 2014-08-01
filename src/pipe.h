@@ -13,7 +13,8 @@ namespace ShiftReduce {
 
 class Pipe {
 public:
-  Pipe(int beam_size);
+  Pipe(const char * postag_dict_path,
+      int beam_size);
 
   typedef std::vector<action::action_t> action_collection_t;
   // a list of actions;

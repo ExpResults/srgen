@@ -13,6 +13,7 @@ link_directories (${Boost_LIBRARY_DIRS})
 add_executable (srg
     ${SOURCE_DIR}/engine.cc
     ${SOURCE_DIR}/action.cc
+    ${SOURCE_DIR}/constraint.cc
     ${SOURCE_DIR}/extractor.cc
     ${SOURCE_DIR}/weight.cc
     ${SOURCE_DIR}/io.cc

@@ -20,8 +20,10 @@ static bool TransitionHeapMore (const Pipe::scored_transition_t & x,
 }
 
 
-Pipe::Pipe(int beam_size) 
-  : max_beam_size(beam_size) {
+Pipe::Pipe(const char * postag_dict_path,
+    int beam_size) 
+  : constraint(postag_dict_path),
+  max_beam_size(beam_size) {
   // Allocate a very large lattice.
   lattice = new StateItem[kMaxSteps * kMaxBeamSize];
   BOOST_LOG_TRIVIAL(info) << "PIPE lattice["
@@ -96,11 +98,9 @@ int Pipe::get_possible_actions(const StateItem & item,
 
       std::vector< postag_t > possible_tags;
 
-      constraint.possible_tags_for_word(name, possible_tags);
+      constraint.get_possible_tags(name, possible_tags);
 
       for (int i = 0; i < possible_tags.size(); ++ i) {
-      // for (int i = kStartIndexOfValidPoSTag;
-      //    i < kNumberOfPoSTags; ++ i) {
         postag_t tag = possible_tags[i];
         actions.push_back(action::action_t(ActionEncoderAndDecoder::SH, tag,
               (*item.sentence_ref)[j], j));
@@ -294,17 +294,60 @@ void Pipe::work(const sentence_t & sentence,
     BOOST_LOG_TRIVIAL(trace) << "[" << current_beam_size << "] is inserted into beam";
 
     if (current_beam_size == 0) {
-      BOOST_LOG_TRIVIAL(warning) << "CURRENT Beam size is ZERO!";
+      BOOST_LOG_TRIVIAL(warning) << "#" << now << ": CURRENT Beam size is ZERO!";
     }
 
     if (train_mode) {
       //
       bool correct_state_in_beam = false;
-      for (StateItem * p = lattice_index[step]; p != lattice_index[step + 1]; ++ p) {
-        if (p->previous == correct_state && p->last_action == gold_actions[step-1]) {
-          correct_state = p;
-          correct_state_in_beam = true;
-          break;
+      // First pass, constraint the index to be equal
+      if (!action::is_shift(gold_actions[step- 1])) {
+        for (StateItem * p = lattice_index[step]; p != lattice_index[step + 1]; ++ p) {
+          if (p->previous == correct_state &&  p->last_action == gold_actions[step-1]) {
+            correct_state = p;
+            correct_state_in_beam = true;
+            break;
+          }
+        }
+      } else {
+        // SHIFT-FIRST PASS
+        for (StateItem * p = lattice_index[step]; p != lattice_index[step + 1]; ++ p) {
+          if (p->previous == correct_state && 
+              p->last_action == gold_actions[step-1] &&
+              p->last_action.index == gold_actions[step-1].index) {
+            correct_state = p;
+            correct_state_in_beam = true;
+            break;
+          }
+        }
+
+        if (!correct_state_in_beam) {
+          // Perform the second pass
+          for (StateItem * p = lattice_index[step]; p!= lattice_index[step+ 1]; ++ p) {
+            if (p->previous == correct_state &&
+                p->last_action == gold_actions[step- 1]) {
+              int shifted_index = p->last_action.index;
+              int expected_shifted_index = gold_actions[step- 1].index;
+
+              if (!p->buffer.test(expected_shifted_index)) {
+                BOOST_LOG_TRIVIAL(warning) << "#" << now
+                  << ": The expected shifted index should be empty";
+                break;
+              }
+
+              p->buffer.flip(expected_shifted_index);
+              p->buffer.flip(shifted_index);
+
+              p->postags[expected_shifted_index] = p->postags[shifted_index];
+              p->postags[shifted_index] = 0;
+
+              p->stack.back() = expected_shifted_index;
+              p->last_action = gold_actions[step- 1];
+              correct_state = p;
+              correct_state_in_beam = true;
+              break;
+            }
+          }
         }
       }
 
@@ -323,7 +366,8 @@ void Pipe::work(const sentence_t & sentence,
         // [Update state
         if (!collect_state_chain_and_update_score(best_to,
             lattice_index[step+1], now, 1, -1)) {
-          BOOST_LOG_TRIVIAL(warning) << "Failed to update score (cond i) at #" << now;
+          BOOST_LOG_TRIVIAL(warning) << "#" << now
+            << ": Failed to update score (cond i)";
         }
         return;
       }
@@ -345,7 +389,8 @@ void Pipe::work(const sentence_t & sentence,
 
     if (best_to != correct_state) {
       if (!collect_state_chain_and_update_score(best_to, correct_state, now, 1, -1)) {
-        BOOST_LOG_TRIVIAL(warning) << "Failed to update score (cond ii) at #" << now;
+        BOOST_LOG_TRIVIAL(warning) << "#" << now 
+          << "Failed to update score (cond ii)";
       }
     }
     return;
@@ -368,7 +413,8 @@ void Pipe::work(const sentence_t & sentence,
 
   output.clear();
   if (order.size() != N) {
-    BOOST_LOG_TRIVIAL(warning) << "ORDER is not equal to the sent size at #" << now;
+    BOOST_LOG_TRIVIAL(warning) << "#" << now 
+      << ": ORDER is not equal to the sent size";
     BOOST_LOG_TRIVIAL(warning) << "order size : " << order.size() << " N : " << N;
 
     output.push_back(0, 0, 0, 0);
