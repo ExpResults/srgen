@@ -91,7 +91,7 @@ PoSTagEncoderAndDecoder::encode(const char * name) const {
   else if (EQ("WP"))      { return WP;        }
   else if (EQ("WP$"))     { return WP_DOLLAR; }
   else if (EQ("WRB"))     { return WRB;       }
-  return -1;
+  return NONE;
 }
 
 
@@ -126,7 +126,7 @@ DeprelsEncoderAndDecoder::encode(const char * name) const {
   else if (EQ("SUB"))   { return SUB;   }
   else if (EQ("VC"))    { return VC;    }
   else if (EQ("VMOD"))  { return VMOD;  }
-  return -1;
+  return NONE;
 }
 
 

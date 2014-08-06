@@ -44,8 +44,30 @@ struct DependencyParse {
   }
 
   friend std::ostream & operator << (std::ostream & os, const DependencyParse & d) {
-    for (int i = 0; i < d.forms.size(); ++ i) {
-      std::cout << d.forms[i] << " ";
+    int N = d.forms.size();
+
+    for (int i = 0; i < N; ++ i) {
+      os << WordEngine::get_const_instance().decode(d.forms[i]) << "\t";
+      if (d.postags.size() == N) {
+        const char * tag = PoSTagEngine::get_const_instance().decode(d.postags[i]);
+        os << (tag ? tag : "_");
+      } else {
+        os << "_";
+      }
+      os << "\t";
+      if (d.heads.size() == N) {
+        os << d.heads[i];
+      } else {
+        os << "_";
+      }
+      os << "\t";
+      if (d.deprels.size() == N) {
+        const char * deprel = DeprelEngine::get_const_instance().decode(d.deprels[i]);
+        os << (deprel ? deprel : "NONE");
+      } else {
+        os << "NONE";
+      }
+      os << std::endl;
     }
 
     return os;
@@ -56,9 +78,9 @@ struct DependencyParse {
 typedef DependencyParse   dependency_t;
 typedef DependencyParse   unordered_dependency_t;
 
-const int kMaxNumberOfWords = 128;
+const int kMaxNumberOfWords = 180;
 
-const int kMaxLengthOfBuffer = 1024;
+const int kMaxLengthOfBuffer = 2048;
 
 const int kStartIndexOfValidPoSTag = PoSTagEncoderAndDecoder::DOLLAR;
 

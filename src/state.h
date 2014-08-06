@@ -60,7 +60,7 @@ public:
 public:
   int N;  // The total number of word for thesentence.
 
-  const sentence_t    * sentence_ref;
+  const sentence_t * sentence_ref;
   // The reference to the sentence
 
   const StateItem * previous;

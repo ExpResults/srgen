@@ -9,25 +9,21 @@ namespace ZGen {
 
 namespace ShiftReduce {
 
-static bool StateHeapMore (const StateItem * x, const StateItem * y) {
-  return x->score > y->score;
-}
-
-
 static bool TransitionHeapMore (const Pipe::scored_transition_t & x,
     const Pipe::scored_transition_t & y) {
   return x.get<2>() > y.get<2>();
 }
 
 
-Pipe::Pipe(const char * postag_dict_path,
-    int beam_size) 
-  : constraint(postag_dict_path),
-  max_beam_size(beam_size) {
+Pipe::Pipe(int beam_size)
+  : max_beam_size(beam_size) {
   // Allocate a very large lattice.
   lattice = new StateItem[kMaxSteps * kMaxBeamSize];
-  BOOST_LOG_TRIVIAL(info) << "PIPE lattice["
-    << kMaxSteps * kMaxBeamSize << "] allocated";
+  BOOST_LOG_TRIVIAL(info) << "PIPE: lattice[" << kMaxSteps * kMaxBeamSize << "] allocated";
+}
+
+
+Pipe::~Pipe() {
 }
 
 
@@ -82,43 +78,6 @@ void Pipe::clear_candidate_transition() {
   for (int i = 0; i < max_beam_size; ++ i) {
     candidate_transitions[i].get<2>() = -inf;
   }
-}
-
-
-int Pipe::get_possible_actions(const StateItem & item,
-    std::vector<action::action_t> & actions) {
-  actions.clear();
-
-  // Then loop over the words in the buffer.
-  for (int j = 0; j < item.N; ++ j) {
-    if (item.buffer.test(j)) {
-
-      // Generate all possible SHIFT actions, first loop over possible PoSTags.
-      const char * name = WordEngine::get_const_instance().decode(item.sentence_ref->at(j));
-
-      std::vector< postag_t > possible_tags;
-
-      constraint.get_possible_tags(name, possible_tags);
-
-      for (int i = 0; i < possible_tags.size(); ++ i) {
-        postag_t tag = possible_tags[i];
-        actions.push_back(action::action_t(ActionEncoderAndDecoder::SH, tag,
-              (*item.sentence_ref)[j], j));
-      }
-    }
-  }
-
-  if (item.stack.size() > 2) {
-    // There is one pseudo node in the stack
-    // Generate LEFT-ARC and RIGHT-ARC actions
-    for (int i = kStartIndexOfValidDependencyRelation;
-        i < kNumberOfDependencyRelations; ++ i) {
-      actions.push_back(action::action_t(ActionEncoderAndDecoder::LA, i, 0));
-      actions.push_back(action::action_t(ActionEncoderAndDecoder::RA, i, 0));
-    }
-  }
-
-  return (int)actions.size();
 }
 
 
@@ -216,21 +175,98 @@ bool Pipe::collect_state_chain_and_update_score(
 }
 
 
-void Pipe::work(const sentence_t & sentence,
+StateItem * Pipe::search_correct_state(
+    const action::action_t & act,
+    StateItem * previous_correct_state,
+    StateItem * lattice_begin,
+    StateItem * lattice_end) {
+
+  StateItem * correct_state = NULL;
+
+  if (!action::is_shift(act)) {
+    for (StateItem * p = lattice_begin; p != lattice_end; ++ p) {
+      if (p->previous == previous_correct_state && p->last_action == act) {
+        correct_state = p;
+        break;
+      }
+    }
+  } else {
+    // SHIFT-FIRST PASS
+    for (StateItem * p = lattice_begin; p != lattice_end; ++ p) {
+      if (p->previous == previous_correct_state &&
+          p->last_action == act &&
+          p->last_action.index == act.index) {
+        correct_state = p;
+        break;
+      }
+    }
+
+    if (NULL == correct_state) {
+      // Perform the second pass
+      for (StateItem * p = lattice_begin; p!= lattice_end; ++ p) {
+        if (p->previous == correct_state &&
+            p->last_action == act) {
+          int shifted_index = p->last_action.index;
+          int expected_shifted_index = act.index;
+
+          if (!p->buffer.test(expected_shifted_index)) {
+            BOOST_LOG_TRIVIAL(warning) << "#" << timestamp
+              << ": The expected shifted index should be empty";
+            break;
+          }
+
+          p->buffer.set(expected_shifted_index, 0);
+          // Remove the gold indexed word from the buffer
+          p->buffer.set(shifted_index, 1);
+          // Recover the predicated shifted word from the buffer
+
+          p->postags[expected_shifted_index] = p->postags[shifted_index];
+          p->postags[shifted_index] = 0;
+
+          p->stack.back() = expected_shifted_index;
+          p->last_action = act;
+
+          correct_state = p;
+          break;
+        }
+      }
+    }
+  }
+
+  return correct_state;
+}
+
+
+const StateItem * Pipe::search_best_state(const StateItem * begin,
+    const StateItem * end) {
+  const StateItem * best = begin;
+  for (const StateItem * p = begin+ 1; p != end; ++ p) {
+    if (p->score > best->score) {
+      best = p;
+    }
+  }
+  return best;
+}
+
+
+void Pipe::work(const dependency_t & input,
     const std::vector<action::action_t> & gold_actions,
     dependency_t & output,
     int now) {
 
+  config_sentence(input, now);
+
+  int N = input.forms.size();
+
   // GET whether perform training.
   // If gold action is provide, perform training on the current instance.
-  bool train_mode = (gold_actions.size() == sentence.size() * 2 - 1);
+  bool train_mode = (gold_actions.size() == N * 2 - 1);
   if (train_mode) {
     BOOST_LOG_TRIVIAL(trace) << "TRAIN MODE activated.";
   } else {
     BOOST_LOG_TRIVIAL(trace) << "TEST MODE activated.";
   }
 
-  int N = sentence.size();
   // BOOST_LOG_TRIVIAL(debug) << N;
   int steps = (N << 1) - 1;
 
@@ -238,7 +274,7 @@ void Pipe::work(const sentence_t & sentence,
   BOOST_LOG_TRIVIAL(trace) << "INIT the starting state.";
 
   lattice[0].clear();
-  lattice[0].set_sentence_reference(&sentence);
+  lattice[0].set_sentence_reference(&(input.forms));
 
   lattice_index[0] = lattice;
   lattice_index[1] = lattice + 1;
@@ -255,7 +291,7 @@ void Pipe::work(const sentence_t & sentence,
 
     clear_candidate_transition();
 
-    for (StateItem * from = lattice_index[step - 1]; from != lattice_index[step]; ++ from) {
+    for (StateItem * from = lattice_index[step- 1]; from != lattice_index[step]; ++ from) {
       BOOST_LOG_TRIVIAL(trace) << "EXTEND from state [" << (void *)from << "]";
 
       get_possible_actions((*from), possible_actions);
@@ -299,110 +335,48 @@ void Pipe::work(const sentence_t & sentence,
 
     if (train_mode) {
       //
-      bool correct_state_in_beam = false;
-      // First pass, constraint the index to be equal
-      if (!action::is_shift(gold_actions[step- 1])) {
-        for (StateItem * p = lattice_index[step]; p != lattice_index[step + 1]; ++ p) {
-          if (p->previous == correct_state &&  p->last_action == gold_actions[step-1]) {
-            correct_state = p;
-            correct_state_in_beam = true;
-            break;
-          }
-        }
-      } else {
-        // SHIFT-FIRST PASS
-        for (StateItem * p = lattice_index[step]; p != lattice_index[step + 1]; ++ p) {
-          if (p->previous == correct_state && 
-              p->last_action == gold_actions[step-1] &&
-              p->last_action.index == gold_actions[step-1].index) {
-            correct_state = p;
-            correct_state_in_beam = true;
-            break;
-          }
-        }
+      StateItem * next_correct_state = search_correct_state(
+          gold_actions[step- 1], correct_state,
+          lattice_index[step], lattice_index[step+ 1]);
 
-        if (!correct_state_in_beam) {
-          // Perform the second pass
-          for (StateItem * p = lattice_index[step]; p!= lattice_index[step+ 1]; ++ p) {
-            if (p->previous == correct_state &&
-                p->last_action == gold_actions[step- 1]) {
-              int shifted_index = p->last_action.index;
-              int expected_shifted_index = gold_actions[step- 1].index;
-
-              if (!p->buffer.test(expected_shifted_index)) {
-                BOOST_LOG_TRIVIAL(warning) << "#" << now
-                  << ": The expected shifted index should be empty";
-                break;
-              }
-
-              p->buffer.flip(expected_shifted_index);
-              p->buffer.flip(shifted_index);
-
-              p->postags[expected_shifted_index] = p->postags[shifted_index];
-              p->postags[shifted_index] = 0;
-
-              p->stack.back() = expected_shifted_index;
-              p->last_action = gold_actions[step- 1];
-              correct_state = p;
-              correct_state_in_beam = true;
-              break;
-            }
-          }
-        }
-      }
+      bool correct_state_in_beam = (next_correct_state != NULL);
 
       if (!correct_state_in_beam) {
         BOOST_LOG_TRIVIAL(trace) << "Correct state fallout beam at from #"
           << step - 1 << " to #" << step;
-        StateItem * best_to = lattice_index[step];
-        for (StateItem * to =lattice_index[step] + 1;
-            to != lattice_index[step + 1]; ++ to) {
-          if (best_to->score < to->score) {
-            best_to = to;
-          }
-        }
+
+        const StateItem * best_to = search_best_state(lattice_index[step],
+            lattice_index[step+ 1]);
 
         transit((*correct_state), gold_actions[step-1], 0, (*lattice_index[step+1]));
+
         // [Update state
-        if (!collect_state_chain_and_update_score(best_to,
-            lattice_index[step+1], now, 1, -1)) {
+        if (!collect_state_chain_and_update_score(best_to, 
+              lattice_index[step+1], now, 1, -1)) {
           BOOST_LOG_TRIVIAL(warning) << "#" << now
             << ": Failed to update score (cond i)";
         }
         return;
+      } else {
+        correct_state = next_correct_state;
       }
     }
   }
 
-  /*BOOST_LOG_TRIVIAL(debug) << "Reach the end of sentence.";
-  BOOST_LOG_TRIVIAL(debug) << (void *)correct_state;
-  BOOST_LOG_TRIVIAL(debug) << "step=" << step;*/
-
   if (train_mode) {
-    StateItem * best_to = lattice_index[step- 1];
-    for (StateItem * to = lattice_index[step- 1] + 1;
-        to != lattice_index[step]; ++ to) {
-      if (best_to->score < to->score) {
-        best_to = to;
-      }
-    }
+    const StateItem * best_to = search_best_state(lattice_index[step- 1],
+        lattice_index[step]);
 
     if (best_to != correct_state) {
       if (!collect_state_chain_and_update_score(best_to, correct_state, now, 1, -1)) {
-        BOOST_LOG_TRIVIAL(warning) << "#" << now 
+        BOOST_LOG_TRIVIAL(warning) << "#" << now
           << "Failed to update score (cond ii)";
       }
     }
     return;
   }
 
-  StateItem * best_to = lattice_index[step- 1];
-  for (StateItem * to = lattice_index[step- 1] + 1;
-      to != lattice_index[step]; ++ to) {
-    if (best_to->score < to->score) {
-      best_to = to;
-    }
-  }
+  const StateItem * best_to = search_best_state(lattice_index[step- 1], lattice_index[step]);
 
   std::vector<int> order;
   for (const StateItem * p = best_to; p->previous; p = p->previous) {
@@ -413,23 +387,137 @@ void Pipe::work(const sentence_t & sentence,
 
   output.clear();
   if (order.size() != N) {
-    BOOST_LOG_TRIVIAL(warning) << "#" << now 
-      << ": ORDER is not equal to the sent size";
+    BOOST_LOG_TRIVIAL(warning) << "#" << now << ": ORDER is not equal to the sent size";
     BOOST_LOG_TRIVIAL(warning) << "order size : " << order.size() << " N : " << N;
 
     output.push_back(0, 0, 0, 0);
     return;
   }
 
+  const sentence_t & sentence = input.forms;
   std::reverse(order.begin(), order.end());
   for (int i = 0; i < N; ++ i) {
     int j = order[i];
     output.push_back(sentence[j],
-        best_to->postags[j], 
+        best_to->postags[j],
         best_to->heads[j],
         best_to->deprels[j]);
   }
 }
 
+
+// The NonePipe
+NonePipe::NonePipe(const char * postag_dict_path,
+    int beam_size)
+  : constraint(postag_dict_path),
+  Pipe(beam_size) {
 }
+
+
+int NonePipe::get_possible_actions(const StateItem & item,
+    std::vector<action::action_t> & actions) {
+  actions.clear();
+
+  // Then loop over the words in the buffer.
+  for (int j = 0; j < item.N; ++ j) {
+    if (item.buffer.test(j)) {
+
+      // Generate all possible SHIFT actions, first loop over possible PoSTags.
+      const char * name = WordEngine::get_const_instance().decode(item.sentence_ref->at(j));
+      std::vector< postag_t > possible_tags;
+      constraint.get_possible_tags(name, possible_tags);
+
+      for (int i = 0; i < possible_tags.size(); ++ i) {
+        postag_t tag = possible_tags[i];
+        actions.push_back(action::action_t(ActionEncoderAndDecoder::SH, tag,
+              (*item.sentence_ref)[j], j));
+      }
+    }
+  }
+
+  if (item.stack.size() > 2) {
+    // There is one pseudo node in the stack
+    // Generate LEFT-ARC and RIGHT-ARC actions
+    for (int i = kStartIndexOfValidDependencyRelation;
+        i < kNumberOfDependencyRelations; ++ i) {
+      actions.push_back(action::action_t(ActionEncoderAndDecoder::LA, i, 0));
+      actions.push_back(action::action_t(ActionEncoderAndDecoder::RA, i, 0));
+    }
+  }
+
+  return (int)actions.size();
+}
+
+
+int NonePipe::config_sentence(const dependency_t & input, int now) {
+  timestamp = now;
+  input_ref = &input;
+}
+
+
+PoSTagPipe::PoSTagPipe(int beam_size)
+  : Pipe(beam_size) {
+}
+
+
+int PoSTagPipe::get_possible_actions(const StateItem & item,
+    action_collection_t & actions) {
+  actions.clear();
+
+  // Then loop over the words in the buffer.
+  for (int j = 0; j < item.N; ++ j) {
+    if (item.buffer.test(j)) {
+      word_t   word = input_ref->forms[j];
+      postag_t  tag = input_ref->postags[j];
+      actions.push_back(action::action_t(ActionEncoderAndDecoder::SH, tag, word, j));
+    }
+  }
+
+  if (item.stack.size() > 2) {
+    // There is one pseudo node in the stack
+    // Generate LEFT-ARC and RIGHT-ARC actions
+    for (int i = kStartIndexOfValidDependencyRelation;
+        i < kNumberOfDependencyRelations; ++ i) {
+      actions.push_back(action::action_t(ActionEncoderAndDecoder::LA, i, 0));
+      actions.push_back(action::action_t(ActionEncoderAndDecoder::RA, i, 0));
+    }
+  }
+
+  return (int)actions.size();
+
+}
+
+int PoSTagPipe::config_sentence(const dependency_t & input, int now) {
+  timestamp = now;
+  input_ref = &input;
+}
+
+
+FullPipe::FullPipe(int beam_size)
+  : Pipe(beam_size) {
+}
+
+//
+int FullPipe::get_possible_actions(const StateItem & item,
+    std::vector<action::action_t> & actions) {
+  actions.clear();
+}
+
+
+int FullPipe::config_sentence(const dependency_t & input,
+    int now) {
+  timestamp = now;
+  input_ref= &input;
+
+  tree.set_ref(&input);
+
+  std::cout << tree << std::endl;
+  exit(0);
+
+  return 0;
+}
+
+
+}
+
 }

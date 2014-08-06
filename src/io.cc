@@ -18,8 +18,8 @@ namespace ShiftReduce {
  *  @param[out] data  The raw data stored in the file.
  *  @return     int   The number of instances.
  */
-int read_raw_data(std::istream & is,
-    std::vector< sentence_t > & data) {
+int read_from_tok(std::istream & is,
+    std::vector< dependency_t > & data) {
   namespace algo = boost::algorithm;
   char buffer[kMaxLengthOfBuffer];
   std::vector<std::string> tokens;
@@ -29,11 +29,12 @@ int read_raw_data(std::istream & is,
     algo::split(tokens, buffer, boost::is_any_of("\t "),
         boost::token_compress_on);
 
-    std::vector< word_t > instance;
+    dependency_t instance;
+    sentence_t & forms = instance.forms;
+
     for (std::vector<std::string>::iterator token = tokens.begin();
         token != tokens.end(); ++ token) {
-      instance.push_back(
-          WordEngine::get_mutable_instance().insert((*token).c_str()));
+      forms.push_back(WordEngine::get_mutable_instance().insert((*token).c_str()));
     }
 
     data.push_back(instance);
@@ -49,8 +50,8 @@ int read_raw_data(std::istream & is,
  *  @parma[out] trees The dependency parse trees.
  *  @return     int   The number of dependency tree read.
  */
-int read_dep_data(std::istream & is,
-    std::vector<DependencyParse> & trees) {
+int read_from_dep(std::istream & is,
+    std::vector< dependency_t > & trees) {
   namespace algo = boost::algorithm;
 
   trees.clear();
@@ -70,7 +71,7 @@ int read_dep_data(std::istream & is,
     boost::sregex_token_iterator item(instance_context.begin(),
         instance_context.end(), ITEM_DELIMITER, -1);
 
-    DependencyParse parse = DependencyParse();
+    dependency_t parse;
     while (item != eos) {
       std::string item_context = (*item);
       std::vector<std::string> items;

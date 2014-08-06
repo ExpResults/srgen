@@ -7,10 +7,10 @@ namespace ZGen {
 
 namespace ShiftReduce {
 
-int read_raw_data(std::istream & is,
-    std::vector< sentence_t > & data);
+int read_from_tok(std::istream & is,
+    std::vector< dependency_t > & data);
 
-int read_dep_data(std::istream & is,
+int read_from_dep(std::istream & is,
     std::vector< dependency_t > & data);
 
 void write_dep_instance(std::ostream & os,
