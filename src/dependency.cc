@@ -5,15 +5,26 @@ namespace ZGen {
 namespace ShiftReduce {
 
 DependencyTree::DependencyTree() : ref(0) {
-  clear();
+  //reset();
 }
 
+DependencyTree::~DependencyTree() {
+  std::cerr << "DEPENDENCY-TREE: Should not be dellocate" << std::endl;
+}
 
-void DependencyTree::set_ref(const unordered_dependency_t * _ref) {
+DependencyTree::DependencyTree(DependencyTree& o) {
+  std::cerr << "Copy assignment is not allowed." << std::endl;
+}
+
+DependencyTree& DependencyTree::operator = (const DependencyTree& other) {
+  std::cerr << "Copy operation is not allowed." << std::endl;
+}
+
+void DependencyTree::set_ref(const dependency_t* _ref) {
   ref = _ref;
-
   int N = _ref->forms.size();
-  clear(N);
+
+  reset(N);
 
   for (int i = 0; i < N; ++ i) {
     int v = _ref->heads[i];
@@ -34,7 +45,25 @@ void DependencyTree::set_ref(const unordered_dependency_t * _ref) {
 }
 
 
-void DependencyTree::clear(int N) {
+const DependencyTree::edgeset_t& DependencyTree::descendants(int i) {
+  return descendant[i];
+}
+
+
+const DependencyTree::edgeset_t& DependencyTree::siblings(int i) {
+  return sibling[i];
+}
+
+
+int DependencyTree::head(int i) {
+  return parent[i];
+}
+
+bool DependencyTree::arc(int from, int to) {
+  return parent[to] == from;
+}
+
+void DependencyTree::reset(int N) {
   // Set all parent to un init.
   memset(parent, -1, sizeof(parent));
 
@@ -76,7 +105,7 @@ void DependencyTree::go(int now) {
 
   for (int i = 0; i < children[now].size(); ++ i) {
     int child = children[now][i];
-    edgeset_t & subtree = descendant[child];
+    const edgeset_t & subtree = descendant[child];
 
     // First push the certain children
     tree.push_back(child);
@@ -97,7 +126,7 @@ void DependencyTree::go(int now) {
         continue;
       }
 
-      edgeset_t & subtree = descendant[child2];
+      const edgeset_t & subtree = descendant[child2];
       // Push back the sibling node.
       sib.push_back(child2);
       //

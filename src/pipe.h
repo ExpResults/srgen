@@ -81,7 +81,7 @@ protected:
   int timestamp;
 
   // The reference to the currently processed instance.
-  const dependency_t * input_ref;
+  const dependency_t* input_ref;
 
 private:
   /**
@@ -202,7 +202,7 @@ private:
 
 
 //
-class NonePipe : public Pipe {
+class NonePipe: public Pipe {
 public:
   NonePipe(const char * postag_dict_path,
       int beam_size);
@@ -258,6 +258,7 @@ protected:
 class FullPipe : public Pipe {
 public:
   FullPipe(int beam_size);
+  ~FullPipe();
 
 protected:
   /**
@@ -276,8 +277,10 @@ protected:
    *  @param[in]  now     The timestamp
    */
   int config_sentence(const dependency_t & input, int now);
+
 private:
-  DependencyTree tree;
+  DependencyTree cache;
+
 };
 
 }

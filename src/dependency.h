@@ -9,18 +9,34 @@ namespace ShiftReduce {
 
 class DependencyTree {
 public:
+  typedef std::vector<int> edgeset_t;
+
   DependencyTree();
+
+  ~DependencyTree();
 
   void set_ref(const unordered_dependency_t * _ref);
 
   //
   friend std::ostream & operator << (std::ostream & ofs, const DependencyTree & tree);
 
+  const edgeset_t& siblings(int i);
+
+  const edgeset_t& descendants(int i);
+
+  int head(int i);
+
+  bool arc(int from, int to);
+
 private:
+  DependencyTree(DependencyTree & other);
+
+  DependencyTree& operator = (const DependencyTree & other);
+
   /**
    * Clear all the cached information.
    */
-  void clear(int N = kMaxNumberOfWords);
+  void reset(int N = kMaxNumberOfWords);
 
 
   /**
@@ -40,9 +56,7 @@ private:
   void add_edge(int u, int v);
 
 
-  typedef std::vector<int> edgeset_t;
-
-  const unordered_dependency_t * ref;
+  const dependency_t * ref;
 
   int parent[kMaxNumberOfWords];
 

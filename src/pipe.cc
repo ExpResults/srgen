@@ -18,6 +18,9 @@ static bool TransitionHeapMore (const Pipe::scored_transition_t & x,
 Pipe::Pipe(int beam_size)
   : max_beam_size(beam_size) {
   // Allocate a very large lattice.
+  if (max_beam_size > kMaxBeamSize) {
+    max_beam_size = kMaxBeamSize;
+  }
   lattice = new StateItem[kMaxSteps * kMaxBeamSize];
   BOOST_LOG_TRIVIAL(info) << "PIPE: lattice[" << kMaxSteps * kMaxBeamSize << "] allocated";
 }
@@ -253,7 +256,6 @@ void Pipe::work(const dependency_t & input,
     const std::vector<action::action_t> & gold_actions,
     dependency_t & output,
     int now) {
-
   config_sentence(input, now);
 
   int N = input.forms.size();
@@ -280,7 +282,7 @@ void Pipe::work(const dependency_t & input,
   lattice_index[1] = lattice + 1;
 
   // Set the correct state link.
-  StateItem * correct_state = lattice;
+  StateItem* correct_state = lattice;
 
   int step;
   for (step = 1; step <= steps; ++ step) {
@@ -497,10 +499,77 @@ FullPipe::FullPipe(int beam_size)
   : Pipe(beam_size) {
 }
 
+FullPipe::~FullPipe() {
+  BOOST_LOG_TRIVIAL(error) << "PIPE: Should not be deallocate";
+}
+
 //
 int FullPipe::get_possible_actions(const StateItem & item,
     std::vector<action::action_t> & actions) {
   actions.clear();
+
+  if (item.stack.size() == 1) {
+    for (int j = 0; j < item.N; ++ j) {
+      if (item.buffer.test(j)) {
+        word_t   word = input_ref->forms[j];
+        postag_t  tag = input_ref->postags[j];
+        actions.push_back(action::action_t(ActionEncoderAndDecoder::SH, tag, word, j));
+      }
+    }
+  } else {
+    bool all_descendants_shifted = true;
+    const DependencyTree::edgeset_t& descendants = cache.descendants(item.stack.back());
+
+    for (int j = 0; j < descendants.size(); ++ j) {
+      int d = descendants[j];
+      if (item.buffer.test(d)) {
+        all_descendants_shifted = false;
+        break;
+      }
+    }
+
+    if (!all_descendants_shifted) {
+      for (int j = 0; j < descendants.size(); ++ j) {
+        int d = descendants[j];
+        if (item.buffer.test(d)) {
+          word_t word = input_ref->forms[d];
+          postag_t tag = input_ref->postags[d];
+          actions.push_back(action::action_t(ActionEncoderAndDecoder::SH, tag, word, d));
+        }
+      }
+    } else {
+      int top0 = item.stack.back();
+      int top1 = (item.stack.size() > 2 ? item.stack[item.stack.size() - 2]: -1);
+
+      if (top1 >= 0 && cache.arc(top0, top1)) {
+        deprel_t deprel = input_ref->deprels[top1];
+        actions.push_back(action::action_t(ActionEncoderAndDecoder::LA, deprel, 0));
+      } else if (top1 >= 0 && cache.arc(top1, top0)) {
+        deprel_t deprel = input_ref->deprels[top0];
+        actions.push_back(action::action_t(ActionEncoderAndDecoder::RA, deprel, 0));
+      } else {
+        const DependencyTree::edgeset_t& siblings = cache.siblings(item.stack.back());
+
+        for (int i = 0; i < siblings.size(); ++ i) {
+          int s = siblings[i];
+          if (item.buffer.test(s)) {
+            word_t word = input_ref->forms[s];
+            postag_t tag = input_ref->postags[s];
+            actions.push_back(action::action_t(ActionEncoderAndDecoder::SH, tag, word, s));
+          }
+        }
+
+        int h = cache.head(item.stack.back());
+        if (item.buffer.test(h)) {
+          word_t word = input_ref->forms[h];
+          postag_t tag = input_ref->postags[h];
+          actions.push_back(action::action_t(ActionEncoderAndDecoder::SH, tag, word, h));
+        }
+      }
+    }
+  }
+
+  return (int)actions.size();
 }
 
 
@@ -509,11 +578,7 @@ int FullPipe::config_sentence(const dependency_t & input,
   timestamp = now;
   input_ref= &input;
 
-  tree.set_ref(&input);
-
-  std::cout << tree << std::endl;
-  exit(0);
-
+  cache.set_ref(&input);
   return 0;
 }
 
