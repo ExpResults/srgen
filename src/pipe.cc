@@ -180,7 +180,7 @@ bool Pipe::collect_state_chain_and_update_score(
 
 StateItem * Pipe::search_correct_state(
     const action::action_t & act,
-    StateItem * previous_correct_state,
+    const StateItem * previous_correct_state,
     StateItem * lattice_begin,
     StateItem * lattice_end) {
 
@@ -321,10 +321,7 @@ void Pipe::work(const dependency_t & input,
         << ": " << trans.get<1>()
         << ", " << trans.get<2>();
 
-      transit((*candidate_transitions[i].get<0>()),
-          candidate_transitions[i].get<1>(),
-          candidate_transitions[i].get<2>(),
-          (*(lattice_index[step]+i)));
+      transit((*trans.get<0>()), trans.get<1>(), trans.get<2>(), (*(lattice_index[step]+i)));
     }
 
     lattice_index[step + 1] = lattice_index[step] + current_beam_size;
@@ -353,7 +350,7 @@ void Pipe::work(const dependency_t & input,
         transit((*correct_state), gold_actions[step-1], 0, (*lattice_index[step+1]));
 
         // [Update state
-        if (!collect_state_chain_and_update_score(best_to, 
+        if (!collect_state_chain_and_update_score(best_to,
               lattice_index[step+1], now, 1, -1)) {
           BOOST_LOG_TRIVIAL(warning) << "#" << now
             << ": Failed to update score (cond i)";
@@ -365,20 +362,16 @@ void Pipe::work(const dependency_t & input,
     }
   }
 
-  if (train_mode) {
-    const StateItem * best_to = search_best_state(lattice_index[step- 1],
-        lattice_index[step]);
+  const StateItem * best_to = search_best_state(lattice_index[step- 1], lattice_index[step]);
 
+  if (train_mode) {
     if (best_to != correct_state) {
       if (!collect_state_chain_and_update_score(best_to, correct_state, now, 1, -1)) {
-        BOOST_LOG_TRIVIAL(warning) << "#" << now
-          << "Failed to update score (cond ii)";
+        BOOST_LOG_TRIVIAL(warning) << "#" << now<< "Failed to update score (cond ii)";
       }
     }
     return;
   }
-
-  const StateItem * best_to = search_best_state(lattice_index[step- 1], lattice_index[step]);
 
   std::vector<int> order;
   for (const StateItem * p = best_to; p->previous; p = p->previous) {

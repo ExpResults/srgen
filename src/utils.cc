@@ -16,8 +16,10 @@ void shuffle_instance(const dependency_t & instance,
 
   std::random_shuffle(order.begin(), order.end());
 
+  shuffled_instance.forms.resize(N);
+
   if (N == instance.postags.size()) {
-    shuffled_instance.postags.reserve(N);
+    shuffled_instance.postags.resize(N);
   }
 
   if (N == instance.heads.size()) {
@@ -26,9 +28,10 @@ void shuffle_instance(const dependency_t & instance,
   }
 
   for (int i = 0; i < N; ++ i) {
-    shuffled_instance.forms.push_back( instance.forms[order[i]] );
+    shuffled_instance.forms[order[i]] = instance.forms[i];
+
     if (N == instance.postags.size()) {
-      shuffled_instance.postags.push_back( instance.postags[order[i]] );
+      shuffled_instance.postags[order[i]] = instance.postags[i];
     }
 
     if (N == instance.heads.size()) {

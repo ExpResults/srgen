@@ -141,6 +141,8 @@ bool parse_config(boost::program_options::variables_map & vm,
     // the postags dict is loaded to speed up the training.
     if (vm.count("posdict")) {
       opts.postag_dict_path = vm["posdict"].as<std::string>();
+    } else {
+      BOOST_LOG_TRIVIAL(warning) << "SRG: No postag dict is specified.";
     }
   }
 
@@ -252,12 +254,7 @@ int main(int argc, char * argv[]) {
     BOOST_LOG_TRIVIAL(warning) << "SRG: input file is not specified, using STDIN instead";
   }
 
-  if (opts.input_type == option_t::NONE && !train_mode) {
-    SR::read_from_tok((*is), data);
-  } else {
-    SR::read_from_dep((*is), data);
-  }
-
+  SR::read_from_dep((*is), data);
   BOOST_LOG_TRIVIAL(info) << "SRG: [" << data.size() << "] input instances are loaded.";
 
   std::ostream * os = NULL;
@@ -285,13 +282,13 @@ int main(int argc, char * argv[]) {
 
     if (train_mode) {
       SR::action::get_correct_actions(sentence, gold_actions);
-
       BOOST_LOG_TRIVIAL(trace) << "GOT gold actions for #" << i << " inst.";
       for (int j = 0; j < gold_actions.size(); ++ j) {
         BOOST_LOG_TRIVIAL(trace) << "GOLD action step #" << j << " : " << gold_actions[j];
       }
     } else {
       shuffle_instance(sentence, shuffled_sentence, order);
+      sentence = shuffled_sentence;
     }
 
     pipe->work(sentence, gold_actions, parse, i + 1);

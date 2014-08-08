@@ -5,9 +5,11 @@ ROOT=`pwd`
 TRAIN_TOK=${ROOT}/data/train/train.tok
 TRAIN_DEP=${ROOT}/data/train/train.dep
 TEST_TOK=${ROOT}/data/input/testi.tok
+TEST_DEP=${ROOT}/data/test/testr.dep
 DEV_TOK=${ROOT}/data/dev/devi.tok
+DEV_DEP=${ROOT}/data/dev/devr.dep
 
-SIG=`date '+%Y-%m-%d-%H%M%S'`
+SIG=`date '+%Y-%m-%d-%H%M%S'`-none
 
 DIC=${ROOT}/data/dic/dic.7
 
@@ -33,7 +35,7 @@ for i in `seq 1 50`; do
     ${EXE} learn -t none \
         -m ${MODEL_PREFIX} \
         -p ${DIC}   \
-        -i ${TRAIN_TOK} 
+        -i ${TRAIN_DEP}
 
     cp ${MODEL_PREFIX}.weight ${MODEL_PREFIX}.weight.${i}
     cp ${MODEL_PREFIX}.word   ${MODEL_PREFIX}.word.${i}
@@ -42,13 +44,13 @@ for i in `seq 1 50`; do
         ${EXE} test -t none \
             -m ${MODEL_PREFIX} \
             -p ${DIC} \
-            -i ${DEV_TOK} \
+            -i ${DEV_DEP} \
             -o ${OUTPUT_DIR}/devo.dep.${i}
 
         ${EXE} test -t none \
             -m ${MODEL_PREFIX} \
             -p ${DIC}   \
-            -i ${TEST_TOK} \
+            -i ${TEST_DEP} \
             -o ${OUTPUT_DIR}/testo.dep.${i}
 
         ./eval/getSentFromDeptree.py ${OUTPUT_DIR}/testo.dep.${i} > ${OUTPUT_DIR}/testo.tok.${i}
@@ -56,7 +58,7 @@ for i in `seq 1 50`; do
 
         cd eval
         echo "test `./bleu-eval.sh ${OUTPUT_DIR}/testo.tok.${i} ${ROOT}/data/test/testr.tok`"
-        echo "dev `./bleu-eval.sh ${OUTPUT_DIR}/devo.tok.${i} ${ROOT}/data/dev/devr.tok`"
+        echo "dev  `./bleu-eval.sh ${OUTPUT_DIR}/devo.tok.${i} ${ROOT}/data/dev/devr.tok`"
         cd ..
     fi
 done

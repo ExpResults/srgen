@@ -163,7 +163,7 @@ private:
    *  @return     StateItem *
    */
   StateItem * search_correct_state(const action::action_t & act,
-      StateItem * previous_correct_state,
+      const StateItem * previous_correct_state,
       StateItem * begin,
       StateItem * end);
 

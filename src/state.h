@@ -77,6 +77,9 @@ public:
   std::vector< postag_t > postag_sequence;
   //
 
+  std::bitset<kMaxNumberOfWords> left_arced;
+  // Used to specified if left arc has performed on the stack top
+
   std::bitset<kMaxNumberOfWords> buffer;
   // The word indices in buffer for current state.
 

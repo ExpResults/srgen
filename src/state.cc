@@ -50,6 +50,8 @@ void StateItem::clear() {
 
   previous = 0;
 
+  left_arced.reset();
+
   buffer.set();     // fill all words in buffer
 
   stack.clear();    // clear words in stack
@@ -111,6 +113,8 @@ void StateItem::copy(const StateItem & other) {
   word_sequence = other.word_sequence;
 
   postag_sequence = other.postag_sequence;
+
+  left_arced = other.left_arced;
 
   buffer = other.buffer;
 
@@ -195,6 +199,8 @@ bool StateItem::left_arc(deprel_t deprel) {
   // Link (top1 <- top0)
   heads[top1] = top0;
   deprels[top1] = deprel;
+
+  left_arced.set(top0, 1);
 
   // Main left child.
   if (left_most_child[top0] == -1) {

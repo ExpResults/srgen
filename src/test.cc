@@ -120,7 +120,7 @@ void shuffle_test() {
 
   input.push_back(
       SR::WordEngine::get_mutable_instance().insert("a"),
-      SR::PoSTagEngine::get_const_instance().encode("NN"),
+      SR::PoSTagEngine::get_const_instance().encode("NP"),
       1,
       SR::DeprelEngine::get_const_instance().encode("NMOD"));
 
@@ -136,6 +136,11 @@ void shuffle_test() {
       1,
       SR::DeprelEngine::get_const_instance().encode("VMOD"));
 
+  input.push_back(
+      SR::WordEngine::get_mutable_instance().insert("."),
+      SR::PoSTagEngine::get_const_instance().encode("."),
+      1,
+      SR::DeprelEngine::get_const_instance().encode("P"));
 
   std::cout << input;
 
@@ -144,6 +149,7 @@ void shuffle_test() {
 
   shuffle_instance(input, output, order);
 
+  std::cout << std::endl;
   for (int i = 0; i < order.size(); ++ i) {
     std::cout << order[i] << ", ";
   }

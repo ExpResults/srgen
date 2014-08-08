@@ -31,7 +31,7 @@ cp ${ROOT}/bin/srg ${EXE}
 
 rm ${MODEL_PREFIX}.*
 
-for i in `seq 1 50`; do
+for i in `seq 1 150`; do
     ${EXE} learn -m ${MODEL_PREFIX} \
         -t full \
         -i ${TRAIN_DEP}
@@ -55,7 +55,7 @@ for i in `seq 1 50`; do
 
         cd eval
         echo "test `./bleu-eval.sh ${OUTPUT_DIR}/testo.tok.${i} ${ROOT}/data/test/testr.tok`"
-        echo "dev `./bleu-eval.sh ${OUTPUT_DIR}/devo.tok.${i} ${ROOT}/data/dev/devr.tok`"
+        echo "dev  `./bleu-eval.sh ${OUTPUT_DIR}/devo.tok.${i} ${ROOT}/data/dev/devr.tok`"
         cd ..
     fi
 done
