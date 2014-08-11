@@ -252,13 +252,17 @@ const StateItem * Pipe::search_best_state(const StateItem * begin,
 }
 
 
-void Pipe::work(const dependency_t & input,
+void Pipe::work(const dependency_t* input,
     const std::vector<action::action_t> & gold_actions,
     dependency_t & output,
     int now) {
-  config_sentence(input, now);
+  // config the timestamp
+  timestamp = now;
 
-  int N = input.forms.size();
+  // config the sentence.
+  config_sentence(input);
+
+  int N = input->size();
 
   // GET whether perform training.
   // If gold action is provide, perform training on the current instance.
@@ -276,7 +280,9 @@ void Pipe::work(const dependency_t & input,
   BOOST_LOG_TRIVIAL(trace) << "INIT the starting state.";
 
   lattice[0].clear();
-  lattice[0].set_sentence_reference(&(input.forms));
+  lattice[0].set_instance_reference(input);
+
+  config_initial_lattice();
 
   lattice_index[0] = lattice;
   lattice_index[1] = lattice + 1;
@@ -385,18 +391,25 @@ void Pipe::work(const dependency_t & input,
     BOOST_LOG_TRIVIAL(warning) << "#" << now << ": ORDER is not equal to the sent size";
     BOOST_LOG_TRIVIAL(warning) << "order size : " << order.size() << " N : " << N;
 
-    output.push_back(0, 0, 0, 0);
+    // output.push_back(0, 0, 0, 0, 0, 0);
     return;
   }
 
-  const sentence_t & sentence = input.forms;
+  const sentence_t & sentence = input->forms;
   std::reverse(order.begin(), order.end());
-  for (int i = 0; i < N; ++ i) {
+  for (int i = 0, k = 0; i < N; ++ i) {
     int j = order[i];
+    std::vector<word_t> words(input->words.begin() + input->phrases[j].first,
+        input->words.begin() + input->phrases[j].second);
+
     output.push_back(sentence[j],
         best_to->postags[j],
         best_to->heads[j],
-        best_to->deprels[j]);
+        best_to->deprels[j],
+        words,
+        dependency_t::range_t(k, k + words.size()),
+        input->is_phrases[j]);
+    k += words.size();
   }
 }
 
@@ -418,14 +431,18 @@ int NonePipe::get_possible_actions(const StateItem & item,
     if (item.buffer.test(j)) {
 
       // Generate all possible SHIFT actions, first loop over possible PoSTags.
-      const char * name = WordEngine::get_const_instance().decode(item.sentence_ref->at(j));
+      const char * name = WordEngine::get_const_instance().decode(item.instance_ref->forms.at(j));
       std::vector< postag_t > possible_tags;
-      constraint.get_possible_tags(name, possible_tags);
+      if (input_ref->is_phrases[j]) {
+        possible_tags.push_back(PoSTagEncoderAndDecoder::NP);
+      } else {
+        constraint.get_possible_tags(name, possible_tags);
+      }
 
       for (int i = 0; i < possible_tags.size(); ++ i) {
         postag_t tag = possible_tags[i];
         actions.push_back(action::action_t(ActionEncoderAndDecoder::SH, tag,
-              (*item.sentence_ref)[j], j));
+              item.instance_ref->forms[j], j));
       }
     }
   }
@@ -444,9 +461,12 @@ int NonePipe::get_possible_actions(const StateItem & item,
 }
 
 
-int NonePipe::config_sentence(const dependency_t & input, int now) {
-  timestamp = now;
-  input_ref = &input;
+int NonePipe::config_sentence(const dependency_t* input) {
+  input_ref = input;
+}
+
+
+int NonePipe::config_initial_lattice() {
 }
 
 
@@ -482,9 +502,12 @@ int PoSTagPipe::get_possible_actions(const StateItem & item,
 
 }
 
-int PoSTagPipe::config_sentence(const dependency_t & input, int now) {
-  timestamp = now;
-  input_ref = &input;
+int PoSTagPipe::config_sentence(const dependency_t* input) {
+  input_ref = input;
+}
+
+
+int PoSTagPipe::config_initial_lattice() {
 }
 
 
@@ -552,7 +575,7 @@ int FullPipe::get_possible_actions(const StateItem & item,
           }
         }
 
-        int h = cache.head(item.stack.back());
+        int h = cache.head(top0);
         if (item.buffer.test(h)) {
           word_t word = input_ref->forms[h];
           postag_t tag = input_ref->postags[h];
@@ -566,15 +589,19 @@ int FullPipe::get_possible_actions(const StateItem & item,
 }
 
 
-int FullPipe::config_sentence(const dependency_t & input,
-    int now) {
-  timestamp = now;
-  input_ref= &input;
+int FullPipe::config_sentence(const dependency_t* input) {
+  input_ref= input;
 
-  cache.set_ref(&input);
+  cache.set_ref(input);
   return 0;
 }
 
+
+int FullPipe::config_initial_lattice() {
+  for (int i = 0; i < input_ref->deprels.size(); ++ i) {
+    lattice->deprels[i] = input_ref->deprels[i];
+  }
+}
 
 }
 

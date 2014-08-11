@@ -276,19 +276,19 @@ int main(int argc, char * argv[]) {
   for (int i = 0; i < data.size(); ++ i) {
     std::vector<SR::action::action_t> gold_actions;
     std::vector<int> order;
-    SR::dependency_t & sentence = data[i];
+    const SR::dependency_t * sentence = &data[i];
     SR::dependency_t shuffled_sentence;
     SR::dependency_t parse;
 
     if (train_mode) {
-      SR::action::get_correct_actions(sentence, gold_actions);
+      SR::action::get_correct_actions((*sentence), gold_actions);
       BOOST_LOG_TRIVIAL(trace) << "GOT gold actions for #" << i << " inst.";
       for (int j = 0; j < gold_actions.size(); ++ j) {
         BOOST_LOG_TRIVIAL(trace) << "GOLD action step #" << j << " : " << gold_actions[j];
       }
     } else {
-      shuffle_instance(sentence, shuffled_sentence, order);
-      sentence = shuffled_sentence;
+      shuffle_instance((*sentence), shuffled_sentence, order);
+      sentence = (&shuffled_sentence);
     }
 
     pipe->work(sentence, gold_actions, parse, i + 1);

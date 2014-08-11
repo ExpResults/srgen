@@ -1,4 +1,6 @@
 #include "utils.h"
+#include "engine.h"
+#include <ctime>
 
 namespace ZGen {
 
@@ -14,9 +16,11 @@ void shuffle_instance(const dependency_t & instance,
     order.push_back(i);
   }
 
+  // std::srand( std::time(0) );
   std::random_shuffle(order.begin(), order.end());
 
   shuffled_instance.forms.resize(N);
+  shuffled_instance.is_phrases.resize(N);
 
   if (N == instance.postags.size()) {
     shuffled_instance.postags.resize(N);
@@ -29,7 +33,8 @@ void shuffle_instance(const dependency_t & instance,
 
   for (int i = 0; i < N; ++ i) {
     shuffled_instance.forms[order[i]] = instance.forms[i];
-
+    shuffled_instance.is_phrases[order[i]] = instance.is_phrases[i];
+    
     if (N == instance.postags.size()) {
       shuffled_instance.postags[order[i]] = instance.postags[i];
     }
@@ -44,6 +49,27 @@ void shuffle_instance(const dependency_t & instance,
       }
     }
   }
+
+  shuffled_instance.phrases.clear();
+  shuffled_instance.phrases.resize(N);
+
+  shuffled_instance.words.clear();
+  shuffled_instance.words.reserve(instance.words.size());
+
+  for (int rank = 0, k = 0; rank < order.size(); ++ rank) {
+    for (int j = 0; j < order.size(); ++ j) {
+      if (order[j] == rank) {
+        shuffled_instance.phrases[rank].first = k;
+        for (int l = instance.phrases[j].first;
+            l < instance.phrases[j].second; ++ l, ++ k) {
+          shuffled_instance.words.push_back(instance.words[l]);
+        }
+        shuffled_instance.phrases[rank].second = k;
+        break;
+      }
+    }
+  }
+
 }
 
 }

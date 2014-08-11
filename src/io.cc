@@ -51,10 +51,10 @@ int read_from_tok(std::istream & is,
  *  @return     int   The number of dependency tree read.
  */
 int read_from_dep(std::istream & is,
-    std::vector< dependency_t > & trees) {
+    std::vector< dependency_t > & data) {
   namespace algo = boost::algorithm;
 
-  trees.clear();
+  data.clear();
   std::string data_context((std::istreambuf_iterator<char>(is)),
       std::istreambuf_iterator<char>());
 
@@ -75,23 +75,70 @@ int read_from_dep(std::istream & is,
     while (item != eos) {
       std::string item_context = (*item);
       std::vector<std::string> items;
+      std::vector<word_t> extended_words;
 
       algo::split(items, item_context, boost::is_any_of("\t "),
           boost::token_compress_on);
 
-      parse.push_back(
-          WordEngine::get_mutable_instance().insert(items[0].c_str()),
-          PoSTagEngine::get_const_instance().encode(items[1].c_str()),
+      word_t form = WordEncoderAndDecoder::NONE;
+      postag_t postag = PoSTagEngine::get_const_instance().encode(items[1].c_str());
+      deprel_t deprel = DeprelEngine::get_const_instance().encode(items[3].c_str());
+      dependency_t::range_t phrase;
+
+      bool is_phrase;
+
+      if (algo::starts_with(items[0], "__") && algo::ends_with(items[0], "__")) {
+        // Detect the word is pre-recognized noun phrase, decode the phrase.
+        std::vector<std::string> tokens;
+
+        algo::trim_left_if(items[0], boost::is_any_of("_"));
+        algo::trim_right_if(items[0], boost::is_any_of("_"));
+        // Store the splitted token into chunk.
+        algo::split(tokens, items[0], boost::is_any_of("_"), boost::token_compress_on);
+
+        for (int j = 0; j < tokens.size(); ++ j) {
+          // temporally store the word in the extended words.
+          word_t word = WordEngine::get_mutable_instance().insert(tokens[j].c_str());
+          extended_words.push_back(word);
+
+          // If the current word is the last word of the phrase, set it as head.
+          if (j == tokens.size() - 1) {
+            form = word;
+          }
+        }
+
+        // maintain the phrase.
+        phrase.first = parse.words.size();
+        phrase.second = phrase.first + tokens.size();
+
+        is_phrase = true;
+      } else {
+        word_t word = WordEngine::get_mutable_instance().insert(items[0].c_str());
+
+        form = word;
+        extended_words.push_back(word);
+        phrase.first = parse.words.size();
+        phrase.second = phrase.first + 1;
+
+        is_phrase = false;
+      }
+
+      parse.push_back(form,
+          postag,
           atoi(items[2].c_str()),
-          DeprelEngine::get_const_instance().encode(items[3].c_str()));
+          deprel,
+          extended_words,
+          phrase,
+          is_phrase);
+
       item ++;
     }
 
-    trees.push_back(parse);
+    data.push_back(parse);
     instance ++;
   }
 
-  return (int)trees.size();
+  return (int)data.size();
 }
 
 
@@ -100,8 +147,20 @@ void write_dep_instance(std::ostream & os,
   int N = parse.forms.size();
 
   for (int i = 0; i < N; ++ i) {
-    os << WordEngine::get_const_instance().decode(parse.forms.at(i))
-      << "\t"
+    if (parse.is_phrases.at(i)) {
+      os << "__";
+      for (int j = parse.phrases.at(i).first; j < parse.phrases.at(i).second; ++ j) {
+        os << WordEngine::get_const_instance().decode(parse.words[j]);
+        if (j + 1 < parse.phrases[i].second) {
+          os << "_";
+        }
+      }
+      os << "__";
+    } else {
+      os << WordEngine::get_const_instance().decode(parse.forms.at(i));
+    }
+
+    os << "\t"
       << PoSTagEngine::get_const_instance().decode(parse.postags.at(i))
       << "\t"
       << parse.heads.at(i)

@@ -1,6 +1,7 @@
 #ifndef __SR_DEPENDENCY_H__
 #define __SR_DEPENDENCY_H__
 
+#include "instance.h"
 #include "settings.h"
 
 namespace ZGen {

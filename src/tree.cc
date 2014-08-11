@@ -1,4 +1,4 @@
-#include "dependency.h"
+#include "tree.h"
 
 namespace ZGen {
 

@@ -39,8 +39,8 @@ int StateItem::stack_top() const {
 }
 
 
-void StateItem::set_sentence_reference(const sentence_t * ref) {
-  sentence_ref = ref;
+void StateItem::set_instance_reference(const dependency_t* ref) {
+  instance_ref = ref;
   N = ref->size();
 }
 
@@ -104,7 +104,7 @@ void StateItem::clear() {
 void StateItem::copy(const StateItem & other) {
   N = other.N;
 
-  sentence_ref = other.sentence_ref;
+  instance_ref = other.instance_ref;
 
   previous = other.previous;
 
@@ -139,7 +139,7 @@ void StateItem::copy(const StateItem & other) {
 
 
 bool StateItem::shift(postag_t label, word_t word, int index) {
-  if (index < 0 || index >= sentence_ref->size()) {
+  if (index < 0 || index >= instance_ref->size()) {
     return false;
   }
 
@@ -150,8 +150,15 @@ bool StateItem::shift(postag_t label, word_t word, int index) {
   // Push the word onto the stack
   stack.push_back(index);
 
+  //std::cout << (*instance_ref) << std::endl;
+
   // Append the word and postag to the certain sequence.
-  word_sequence.push_back( word );
+  // Mainly handle the phrase.
+  for (int i = instance_ref->phrases.at(index).first;
+      i < instance_ref->phrases.at(index).second;
+      ++ i) {
+    word_sequence.push_back( instance_ref->words.at(i) );
+  }
 
   //
   postag_sequence.push_back( label );

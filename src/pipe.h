@@ -6,7 +6,7 @@
 #include "settings.h"
 #include "weight.h"
 #include "constraint.h"
-#include "dependency.h"
+#include "tree.h"
 
 namespace ZGen {
 
@@ -40,7 +40,7 @@ public:
    *  @param[out] output        The output dependency parse
    *  @param[in]  now           The time sequence factor, used in updating parameter.
    */
-  void work(const unordered_dependency_t & input,
+  void work(const unordered_dependency_t* input,
             const action_sequence_t & gold_actions,
             dependency_t & output,
             int now);
@@ -74,14 +74,23 @@ protected:
    *  @param[in]  sentence    The input sentence.
    *  @param[in]  now         The timestamp
    */
-  virtual int config_sentence(const dependency_t & sentence, int now) = 0;
+  virtual int config_sentence(const dependency_t* sentence) = 0;
 
+
+  /**
+   *
+   *
+   */
+  virtual int config_initial_lattice() = 0;
 
   // The timestamp for currently processed instance.
   int timestamp;
 
   // The reference to the currently processed instance.
   const dependency_t* input_ref;
+
+  //
+  StateItem * lattice;
 
 private:
   /**
@@ -181,7 +190,6 @@ private:
   int max_beam_size;
   //
 
-  StateItem * lattice;
   //
 
   StateItem * lattice_index[kMaxSteps];
@@ -223,8 +231,10 @@ protected:
    *  @param[in]  input       The input
    *  @param[in]  now         The now
    */
-  int config_sentence(const dependency_t & input, int now);
+  int config_sentence(const dependency_t* input);
 
+  int config_initial_lattice();
+  
   constraint_t constraint;
 };
 
@@ -250,7 +260,15 @@ protected:
    *
    *
    */
-  int config_sentence(const dependency_t & input, int now);
+  int config_sentence(const dependency_t* input);
+
+  /**
+   *
+   *
+   *
+   *
+   */
+  int config_initial_lattice();
 };
 
 
@@ -276,8 +294,13 @@ protected:
    *  @param[in]  input   The input dependency
    *  @param[in]  now     The timestamp
    */
-  int config_sentence(const dependency_t & input, int now);
+  int config_sentence(const dependency_t* input);
 
+  /**
+   *
+   *
+   */
+  int config_initial_lattice();
 private:
   DependencyTree cache;
 

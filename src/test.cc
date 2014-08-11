@@ -6,6 +6,7 @@
 #include "score.h"
 #include "param.h"
 #include "weight.h"
+#include "instance.h"
 #include "settings.h"
 #include "utils.h"
 #include "serialization/unordered_map.h"
@@ -117,30 +118,53 @@ void postags_engine_test() {
 void shuffle_test() {
   namespace SR = ZGen::ShiftReduce;
   SR::dependency_t input;
+  std::vector<SR::word_t> buff;
+
+  buff.push_back(SR::WordEngine::get_mutable_instance().insert("a"));
 
   input.push_back(
       SR::WordEngine::get_mutable_instance().insert("a"),
       SR::PoSTagEngine::get_const_instance().encode("NP"),
       1,
-      SR::DeprelEngine::get_const_instance().encode("NMOD"));
+      SR::DeprelEngine::get_const_instance().encode("NMOD"),
+      buff,
+      SR::dependency_t::range_t(0, 1),
+      false);
 
-  input.push_back(
-      SR::WordEngine::get_mutable_instance().insert("b"),
-      SR::PoSTagEngine::get_const_instance().encode("VB"),
-      -1,
-      SR::DeprelEngine::get_const_instance().encode("HEAD"));
+  buff.clear();
+  buff.push_back(SR::WordEngine::get_mutable_instance().insert("b"));
+  buff.push_back(SR::WordEngine::get_mutable_instance().insert("c"));
 
   input.push_back(
       SR::WordEngine::get_mutable_instance().insert("c"),
+      SR::PoSTagEngine::get_const_instance().encode("VB"),
+      -1,
+      SR::DeprelEngine::get_const_instance().encode("HEAD"),
+      buff,
+      SR::dependency_t::range_t(1, 3),
+      true);
+
+  buff.clear();
+  buff.push_back(SR::WordEngine::get_mutable_instance().insert("d"));
+  input.push_back(
+      SR::WordEngine::get_mutable_instance().insert("d"),
       SR::PoSTagEngine::get_const_instance().encode("NN"),
       1,
-      SR::DeprelEngine::get_const_instance().encode("VMOD"));
+      SR::DeprelEngine::get_const_instance().encode("VMOD"),
+      buff,
+      SR::dependency_t::range_t(3, 4),
+      false);
 
+  buff.clear();
+  buff.push_back(SR::WordEngine::get_mutable_instance().insert("."));
   input.push_back(
       SR::WordEngine::get_mutable_instance().insert("."),
       SR::PoSTagEngine::get_const_instance().encode("."),
       1,
-      SR::DeprelEngine::get_const_instance().encode("P"));
+      SR::DeprelEngine::get_const_instance().encode("P"),
+      buff,
+      SR::dependency_t::range_t(4, 5),
+      false);
 
   std::cout << input;
 

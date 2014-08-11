@@ -17,15 +17,15 @@ class StateItem {
 public:
   // The default constructor,
   StateItem()
-    : sentence_ref(0),
+    : instance_ref(0),
     N(0) {
     clear();
   }
 
   // The constructor with sentence reference.
-  StateItem(const sentence_t * _sentence_ref)
-    : sentence_ref(_sentence_ref),
-    N(_sentence_ref->size()) {
+  StateItem(const dependency_t * _instance_ref)
+    : instance_ref(_instance_ref),
+    N(_instance_ref->size()) {
     clear();
   }
 
@@ -35,7 +35,7 @@ public:
    *
    *  @param[in] sentence_ref The pointer to the sentence
    */
-  void set_sentence_reference(const sentence_t * _sentence_ref);
+  void set_instance_reference(const dependency_t * _instance_ref);
 
   /**
    * Clear the state item.
@@ -60,7 +60,7 @@ public:
 public:
   int N;  // The total number of word for thesentence.
 
-  const sentence_t * sentence_ref;
+  const dependency_t * instance_ref;
   // The reference to the sentence
 
   const StateItem * previous;

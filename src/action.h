@@ -2,6 +2,7 @@
 #define __SR_ACTION_H__
 
 #include <iostream>
+#include "instance.h"
 #include "settings.h"
 
 #include <boost/tuple/tuple.hpp>

@@ -5,7 +5,7 @@ find_package (Boost REQUIRED)
 
 add_definitions (-DBOOST_LOG_DYN_LINK)
 
-#set (CMAKE_CXX_FLAGS "-g")
+set (CMAKE_CXX_FLAGS "-g")
 set (EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 set (SOURCE_DIR             ${PROJECT_SOURCE_DIR}/src)
 
@@ -15,7 +15,8 @@ add_executable (srg
     ${SOURCE_DIR}/engine.cc
     ${SOURCE_DIR}/action.cc
     ${SOURCE_DIR}/constraint.cc
-    ${SOURCE_DIR}/dependency.cc
+    ${SOURCE_DIR}/tree.cc
+    ${SOURCE_DIR}/instance.cc
     ${SOURCE_DIR}/extractor.cc
     ${SOURCE_DIR}/weight.cc
     ${SOURCE_DIR}/io.cc
@@ -25,6 +26,7 @@ add_executable (srg
     ${SOURCE_DIR}/utils.cc)
 
 add_executable (unittest
+    ${SOURCE_DIR}/instance.cc
     ${SOURCE_DIR}/engine.cc
     ${SOURCE_DIR}/utils.cc
     ${SOURCE_DIR}/test.cc)

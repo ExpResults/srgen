@@ -2,7 +2,7 @@
 #define __SR_UTILS_H__
 
 #include "settings.h"
-
+#include "instance.h"
 namespace ZGen {
 
 namespace ShiftReduce {

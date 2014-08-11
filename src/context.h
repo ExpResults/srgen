@@ -5,7 +5,7 @@
 #define _LEGEAL_RANGE_(x) (((x) >= 0) && ((x) < N))
 
 #define __SET_CTX(prefix) do { \
-  prefix##w = item.sentence_ref->at(prefix); \
+  prefix##w = (item.instance_ref->forms).at(prefix); \
   prefix##p = item.postags[prefix]; \
   prefix##l = item.deprels[prefix]; \
 } while (0);
@@ -40,13 +40,15 @@ const int kNonePoSTag = PoSTagEncoderAndDecoder::NONE;
 
 struct Context {
   Context(const StateItem & item) {
-    int N = item.sentence_ref->size();
+    int N = item.instance_ref->size();
     int S0 = item.stack_top();
+
+    const sentence_t & forms = item.instance_ref->forms;
 
     if (S0 >= 0) {
       _is_begin_state = false;
 
-      S0w = item.sentence_ref->at(S0);
+      S0w = forms.at(S0);
       S0p = item.postags[S0];
       __SET_CNT(S0);
 
@@ -114,7 +116,7 @@ struct Context {
       _has_S1 = true;
       int S1 = item.stack[item.stack.size() - 2];
 
-      S1w = item.sentence_ref->at(S1);
+      S1w = forms.at(S1);
       S1p = item.postags[S1];
       __SET_CNT(S1);
 

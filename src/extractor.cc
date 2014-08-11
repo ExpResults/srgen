@@ -4,42 +4,43 @@
 
 #include <boost/log/trivial.hpp>
 
-#define __GET_UNISCORE(name) do { \
+// Get Unigram Score (GUS)
+#define __GUS(name) do { \
   if (ctx.name) { \
     scores[act] += get_score<us_map_t, us_t>(weight.name, \
         us_t(ctx.name, act), true, 0); \
   } \
 } while (0);
 
-#define __GET_BISCORE(name1, name2) do { \
+#define __GBS(name1, name2) do { \
   if (ctx.name1 && ctx.name2) { \
     scores[act] += get_score<bs_map_t, bs_t>(weight.name1##name2, \
         bs_t(ctx.name1, ctx.name2, act), true, 0); \
   } \
 } while (0);
 
-#define __GET_TRISCORE(name1, name2, name3) do { \
+#define __GTS(name1, name2, name3) do { \
   if (ctx.name1 && ctx.name2 && ctx.name3) { \
     scores[act] += get_score<ts_map_t, ts_t>(weight.name1##name2##name3, \
         ts_t(ctx.name1, ctx.name2, ctx.name3, act), true, 0); \
   } \
 } while (0);
 
-#define __UPDATE_UNISCORE(name) do { \
+#define __UUS(name) do { \
   if (ctx.name) { \
     update_score<us_map_t, us_t>(weight.name, \
         us_t(ctx.name, act), now, scale); \
   } \
 } while (0);
 
-#define __UPDATE_BISCORE(name1, name2) do { \
+#define __UBS(name1, name2) do { \
   if (ctx.name1 && ctx.name2) { \
     update_score<bs_map_t, bs_t>(weight.name1##name2, \
         bs_t(ctx.name1, ctx.name2, act), now, scale); \
   } \
 } while (0);
 
-#define __UPDATE_TRISCORE(name1, name2, name3) do { \
+#define __UTS(name1, name2, name3) do { \
   if (ctx.name1 && ctx.name2 && ctx.name3) { \
     update_score<ts_map_t, ts_t>(weight.name1##name2##name3, \
         ts_t(ctx.name1, ctx.name2, ctx.name3, act), now, scale); \
@@ -61,53 +62,63 @@ int Pipe::get_state_packed_score(const StateItem & item,
   for (int i = 0; i < possible_actions.size(); ++ i) {
     const action::action_t & act = possible_actions[i];
 
-    // scores[act] += get_score<us_map_t, us_t>(weight.S0w, us_t(ctx.S0w, act), true, 0);
-    __GET_UNISCORE(S0w);      __GET_UNISCORE(S0p);
-    __GET_UNISCORE(S0ldw);    __GET_UNISCORE(S0ldp);    __GET_UNISCORE(S0ldl);
-    __GET_UNISCORE(S0l2dw);   __GET_UNISCORE(S0l2dp);   __GET_UNISCORE(S0l2dl);
-    __GET_UNISCORE(S0lddw);   __GET_UNISCORE(S0lddp);   __GET_UNISCORE(S0lddl);
-    __GET_UNISCORE(S0rdw);    __GET_UNISCORE(S0rdp);    __GET_UNISCORE(S0rdl);
-    __GET_UNISCORE(S0r2dw);   __GET_UNISCORE(S0r2dp);   __GET_UNISCORE(S0r2dl);
-    __GET_UNISCORE(S0rddw);   __GET_UNISCORE(S0rddp);   __GET_UNISCORE(S0rddl);
+    __GUS(S0w);      __GUS(S0p);
+    __GUS(S0ldw);    __GUS(S0ldp);    __GUS(S0ldl);
+    __GUS(S0l2dw);   __GUS(S0l2dp);   __GUS(S0l2dl);
+    __GUS(S0lddw);   __GUS(S0lddp);   __GUS(S0lddl);
+    __GUS(S0rdw);    __GUS(S0rdp);    __GUS(S0rdl);
+    __GUS(S0r2dw);   __GUS(S0r2dp);   __GUS(S0r2dl);
+    __GUS(S0rddw);   __GUS(S0rddp);   __GUS(S0rddl);
 
-    __GET_BISCORE(S0r2dw, S0rdw);
-    __GET_BISCORE(S0r2dp, S0rdp);
-    __GET_BISCORE(S0r2dl, S0rdl);
+    // __GBS(S0r2dw, S0rdw); __GBS(S0r2dp, S0rdp); __GBS(S0r2dl, S0rdl);
+    __GBS(S0ldw, S0l2dw); __GBS(S0ldp, S0l2dp); __GBS(S0ldl, S0l2dl);
 
-    __GET_BISCORE(S0ldw, S0l2dw);
-    __GET_BISCORE(S0ldp, S0l2dp);
-    __GET_BISCORE(S0ldl, S0l2dl);
+    __GBS(S0w, S0la); __GBS(S0p, S0la);
+    __GBS(S0w, S0ra); __GBS(S0p, S0ra);
+    __GBS(S0w, S0ls); __GBS(S0p, S0ls);
+    __GBS(S0w, S0rs); __GBS(S0p, S0rs);
 
-    __GET_BISCORE(S0w, S0la); __GET_BISCORE(S0p, S0la);
-    __GET_BISCORE(S0w, S0ra); __GET_BISCORE(S0p, S0ra);
-    __GET_BISCORE(S0w, S0ls); __GET_BISCORE(S0p, S0ls);
-    __GET_BISCORE(S0w, S0rs); __GET_BISCORE(S0p, S0rs);
+    __GBS(S0w, S0ldw); __GBS(S0w, S0ldp);
+    __GBS(S0p, S0ldw); __GBS(S0p, S0ldp);
+    __GBS(S0w, S0rdw); __GBS(S0w, S0rdp);
+    __GBS(S0p, S0rdw); __GBS(S0p, S0rdp);
+
+    __GTS(S0w,S0p,S0ldw); __GTS(S0w,S0p,S0ldp); __GTS(S0w,S0ldw,S0ldp);  __GTS(S0p,S0ldw,S0ldp);
+    __GTS(S0w,S0p,S0rdw); __GTS(S0w,S0p,S0rdp); __GTS(S0w,S0rdw,S0rdp);  __GTS(S0p,S0rdw,S0rdp);
 
     if (ctx.has_S1()) {
-      __GET_UNISCORE(S1w);      __GET_UNISCORE(S1p);
-      __GET_UNISCORE(S1ldw);    __GET_UNISCORE(S1ldp);    __GET_UNISCORE(S1ldl);
-      __GET_UNISCORE(S1l2dw);   __GET_UNISCORE(S1l2dp);   __GET_UNISCORE(S1l2dl);
-      __GET_UNISCORE(S1lddw);   __GET_UNISCORE(S1lddp);   __GET_UNISCORE(S1lddl);
-      __GET_UNISCORE(S1rdw);    __GET_UNISCORE(S1rdp);    __GET_UNISCORE(S1rdl);
-      __GET_UNISCORE(S1r2dw);   __GET_UNISCORE(S1r2dp);   __GET_UNISCORE(S1r2dl);
-      __GET_UNISCORE(S1rddw);   __GET_UNISCORE(S1rddp);   __GET_UNISCORE(S1rddl);
+      __GUS(S1w);      __GUS(S1p);
+      __GUS(S1ldw);    __GUS(S1ldp);    __GUS(S1ldl);
+      __GUS(S1l2dw);   __GUS(S1l2dp);   __GUS(S1l2dl);
+      __GUS(S1lddw);   __GUS(S1lddp);   __GUS(S1lddl);
+      __GUS(S1rdw);    __GUS(S1rdp);    __GUS(S1rdl);
+      __GUS(S1r2dw);   __GUS(S1r2dp);   __GUS(S1r2dl);
+      __GUS(S1rddw);   __GUS(S1rddp);   __GUS(S1rddl);
 
-      __GET_BISCORE(S1r2dw, S1rdw);
-      __GET_BISCORE(S1r2dp, S1rdp);
-      __GET_BISCORE(S1r2dl, S1rdl);
+      __GBS(S1r2dw, S1rdw);
+      __GBS(S1r2dp, S1rdp);
+      __GBS(S1r2dl, S1rdl);
 
-      __GET_BISCORE(S1w, S1la); __GET_BISCORE(S1p, S1la);
-      __GET_BISCORE(S1w, S1ra); __GET_BISCORE(S1p, S1ra);
-      __GET_BISCORE(S1w, S1ls); __GET_BISCORE(S1p, S1ls);
-      __GET_BISCORE(S1w, S1rs); __GET_BISCORE(S1p, S1rs);
+      __GBS(S1w, S1la); __GBS(S1p, S1la);
+      __GBS(S1w, S1ra); __GBS(S1p, S1ra);
+      __GBS(S1w, S1ls); __GBS(S1p, S1ls);
+      __GBS(S1w, S1rs); __GBS(S1p, S1rs);
 
-      __GET_BISCORE(S0w, S1w);  __GET_BISCORE(S0p, S1p);
-      __GET_BISCORE(S0w, S1p);  __GET_BISCORE(S0p, S1w);
+      __GBS(S1w, S1ldw); __GBS(S1w, S1ldp);
+      __GBS(S1p, S1ldw); __GBS(S1p, S1ldp);
+      __GBS(S1w, S1rdw); __GBS(S1w, S1rdp);
+      __GBS(S1p, S1rdw); __GBS(S1p, S1rdp);
+
+      __GTS(S1w,S1p,S1ldw); __GTS(S1w,S1p,S1ldp); __GTS(S1w,S1ldw,S1ldp);  __GTS(S1p,S1ldw,S1ldp);
+      __GTS(S1w,S1p,S1rdw); __GTS(S1w,S1p,S1rdp); __GTS(S1w,S1rdw,S1rdp);  __GTS(S1p,S1rdw,S1rdp);
+
+      __GBS(S0w, S1w);  __GBS(S0p, S1p);
+      __GBS(S0w, S1p);  __GBS(S0p, S1w);
     }
 
-    __GET_UNISCORE(W0);         __GET_UNISCORE(P0);
-    __GET_BISCORE(W0, W1);      __GET_BISCORE(P0, P1);
-    __GET_TRISCORE(W0, W1, W2); __GET_TRISCORE(P0, P1, P2);
+    __GUS(W0);          __GUS(P0);
+    __GBS(W0, W1);      __GBS(P0, P1);
+    __GTS(W0, W1, W2);  __GTS(P0, P1, P2);
   }
 
   return 0;
@@ -120,54 +131,63 @@ int Pipe::update_state_score(const StateItem & item,
   BOOST_LOG_TRIVIAL(trace) << "UPDATING: " << (void *)(&item) << ", " << act << " " << scale;
 
   Context ctx(item);
+  __UUS(S0w);      __UUS(S0p);
+  __UUS(S0ldw);    __UUS(S0ldp);    __UUS(S0ldl);
+  __UUS(S0l2dw);   __UUS(S0l2dp);   __UUS(S0l2dl);
+  __UUS(S0lddw);   __UUS(S0lddp);   __UUS(S0lddl);
+  __UUS(S0rdw);    __UUS(S0rdp);    __UUS(S0rdl);
+  __UUS(S0r2dw);   __UUS(S0r2dp);   __UUS(S0r2dl);
+  __UUS(S0rddw);   __UUS(S0rddp);   __UUS(S0rddl);
 
-  __UPDATE_UNISCORE(S0w);       __UPDATE_UNISCORE(S0p);
-  __UPDATE_UNISCORE(S0ldw);     __UPDATE_UNISCORE(S0ldp);     __UPDATE_UNISCORE(S0ldl);
-  __UPDATE_UNISCORE(S0l2dw);    __UPDATE_UNISCORE(S0l2dp);    __UPDATE_UNISCORE(S0l2dl);
-  __UPDATE_UNISCORE(S0lddw);    __UPDATE_UNISCORE(S0lddp);    __UPDATE_UNISCORE(S0lddl);
-  __UPDATE_UNISCORE(S0rdw);     __UPDATE_UNISCORE(S0rdp);     __UPDATE_UNISCORE(S0rdl);
-  __UPDATE_UNISCORE(S0r2dw);    __UPDATE_UNISCORE(S0r2dp);    __UPDATE_UNISCORE(S0r2dl);
-  __UPDATE_UNISCORE(S0rddw);    __UPDATE_UNISCORE(S0rddp);    __UPDATE_UNISCORE(S0rddl);
+  // __UBS(S0r2dw, S0rdw); __UBS(S0r2dp, S0rdp); __UBS(S0r2dl, S0rdl);
+  __UBS(S0ldw, S0l2dw); __UBS(S0ldp, S0l2dp); __UBS(S0ldl, S0l2dl);
 
-  __UPDATE_BISCORE(S0r2dw, S0rdw);
-  __UPDATE_BISCORE(S0r2dp, S0rdp);
-  __UPDATE_BISCORE(S0r2dl, S0rdl);
+  __UBS(S0w, S0la); __UBS(S0p, S0la);
+  __UBS(S0w, S0ra); __UBS(S0p, S0ra);
+  __UBS(S0w, S0ls); __UBS(S0p, S0ls);
+  __UBS(S0w, S0rs); __UBS(S0p, S0rs);
 
-  __UPDATE_BISCORE(S0ldw, S0l2dw);
-  __UPDATE_BISCORE(S0ldp, S0l2dp);
-  __UPDATE_BISCORE(S0ldl, S0l2dl);
+  __UBS(S0w, S0ldw); __UBS(S0w, S0ldp);
+  __UBS(S0p, S0ldw); __UBS(S0p, S0ldp);
+  __UBS(S0w, S0rdw); __UBS(S0w, S0rdp);
+  __UBS(S0p, S0rdw); __UBS(S0p, S0rdp);
 
-  __UPDATE_BISCORE(S0w, S0la);  __UPDATE_BISCORE(S0p, S0la);
-  __UPDATE_BISCORE(S0w, S0ra);  __UPDATE_BISCORE(S0p, S0ra);
-  __UPDATE_BISCORE(S0w, S0ls);  __UPDATE_BISCORE(S0p, S0ls);
-  __UPDATE_BISCORE(S0w, S0rs);  __UPDATE_BISCORE(S0p, S0rs);
+  __UTS(S0w,S0p,S0ldw); __UTS(S0w,S0p,S0ldp); __UTS(S0w,S0ldw,S0ldp);  __UTS(S0p,S0ldw,S0ldp);
+  __UTS(S0w,S0p,S0rdw); __UTS(S0w,S0p,S0rdp); __UTS(S0w,S0rdw,S0rdp);  __UTS(S0p,S0rdw,S0rdp);
 
   if (ctx.has_S1()) {
-    __UPDATE_UNISCORE(S1w);       __UPDATE_UNISCORE(S1p);
-    __UPDATE_UNISCORE(S1ldw);     __UPDATE_UNISCORE(S1ldp);   __UPDATE_UNISCORE(S1ldl);
-    __UPDATE_UNISCORE(S1l2dw);    __UPDATE_UNISCORE(S1l2dp);  __UPDATE_UNISCORE(S1l2dl);
-    __UPDATE_UNISCORE(S1lddw);    __UPDATE_UNISCORE(S1lddp);  __UPDATE_UNISCORE(S1lddl);
-    __UPDATE_UNISCORE(S1rdw);     __UPDATE_UNISCORE(S1rdp);   __UPDATE_UNISCORE(S1rdl);
-    __UPDATE_UNISCORE(S1r2dw);    __UPDATE_UNISCORE(S1r2dp);  __UPDATE_UNISCORE(S1r2dl);
-    __UPDATE_UNISCORE(S1rddw);    __UPDATE_UNISCORE(S1rddp);  __UPDATE_UNISCORE(S1rddl);
+    __UUS(S1w);      __UUS(S1p);
+    __UUS(S1ldw);    __UUS(S1ldp);    __UUS(S1ldl);
+    __UUS(S1l2dw);   __UUS(S1l2dp);   __UUS(S1l2dl);
+    __UUS(S1lddw);   __UUS(S1lddp);   __UUS(S1lddl);
+    __UUS(S1rdw);    __UUS(S1rdp);    __UUS(S1rdl);
+    __UUS(S1r2dw);   __UUS(S1r2dp);   __UUS(S1r2dl);
+    __UUS(S1rddw);   __UUS(S1rddp);   __UUS(S1rddl);
 
-    __UPDATE_BISCORE(S1r2dw, S1rdw);
-    __UPDATE_BISCORE(S1r2dp, S1rdp);
-    __UPDATE_BISCORE(S1r2dl, S1rdl);
+    __UBS(S1r2dw, S1rdw);
+    __UBS(S1r2dp, S1rdp);
+    __UBS(S1r2dl, S1rdl);
 
-    __UPDATE_BISCORE(S1w, S1la);  __UPDATE_BISCORE(S1p, S1la);
-    __UPDATE_BISCORE(S1w, S1ra);  __UPDATE_BISCORE(S1p, S1ra);
-    __UPDATE_BISCORE(S1w, S1ls);  __UPDATE_BISCORE(S1p, S1ls);
-    __UPDATE_BISCORE(S1w, S1rs);  __UPDATE_BISCORE(S1p, S1rs);
+    __UBS(S1w, S1la); __UBS(S1p, S1la);
+    __UBS(S1w, S1ra); __UBS(S1p, S1ra);
+    __UBS(S1w, S1ls); __UBS(S1p, S1ls);
+    __UBS(S1w, S1rs); __UBS(S1p, S1rs);
 
-    __UPDATE_BISCORE(S0w, S1w);   __UPDATE_BISCORE(S0p, S1p);
-    __UPDATE_BISCORE(S0w, S1p);   __UPDATE_BISCORE(S0p, S1w);
-    //
+    __UBS(S1w, S1ldw); __UBS(S1w, S1ldp);
+    __UBS(S1p, S1ldw); __UBS(S1p, S1ldp);
+    __UBS(S1w, S1rdw); __UBS(S1w, S1rdp);
+    __UBS(S1p, S1rdw); __UBS(S1p, S1rdp);
+
+    __UTS(S1w,S1p,S1ldw); __UTS(S1w,S1p,S1ldp); __UTS(S1w,S1ldw,S1ldp);  __UTS(S1p,S1ldw,S1ldp);
+    __UTS(S1w,S1p,S1rdw); __UTS(S1w,S1p,S1rdp); __UTS(S1w,S1rdw,S1rdp);  __UTS(S1p,S1rdw,S1rdp);
+
+    __UBS(S0w, S1w);  __UBS(S0p, S1p);
+    __UBS(S0w, S1p);  __UBS(S0p, S1w);
   }
 
-  __UPDATE_UNISCORE(W0);          __UPDATE_UNISCORE(P0);
-  __UPDATE_BISCORE(W0, W1);       __UPDATE_BISCORE(P0, P1);
-  __UPDATE_TRISCORE(W0, W1, W2);  __UPDATE_TRISCORE(P0, P1, P2);
+  __UUS(W0);          __UUS(P0);
+  __UBS(W0, W1);      __UBS(P0, P1);
+  __UTS(W0, W1, W2);  __UTS(P0, P1, P2);
   return 1;
 }
 
