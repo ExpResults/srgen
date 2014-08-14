@@ -78,6 +78,9 @@ bool BasicWeight::save_weight(const char * filename) {
   oa << S0wS1p << S0pS1w;
   oa << S0wS0pS1w << S0wS0pS1p << S0wS1wS1p << S0pS1wS1p;
 
+  oa << S0wS1wS0S1Dist << S0pS1pS0S1Dist;
+  oa << S0wS1pS0S1Dist << S0pS1wS0S1Dist;
+
   oa << W0 << P0;
   oa << W0W1 << P0P1;
   oa << W0W1W2 << P0P1P2;
@@ -142,6 +145,9 @@ bool BasicWeight::load_weight(const char * filename) {
   ia >> S0wS1p >> S0pS1w;
   ia >> S0wS0pS1w >> S0wS0pS1p >> S0wS1wS1p >> S0pS1wS1p;
 
+  ia >> S0wS1wS0S1Dist >> S0pS1pS0S1Dist;
+  ia >> S0wS1pS0S1Dist >> S0pS1wS0S1Dist;
+
   ia >> W0 >> P0;
   ia >> W0W1 >> P0P1;
   ia >> W0W1W2 >> P0P1P2;
@@ -199,6 +205,9 @@ bool BasicWeight::flush_weight(int now) {
   __FBM( S0wS1w); __FBM( S0pS1p);
   __FBM( S0wS1p); __FBM( S0pS1w);
   __FTM( S0wS0pS1w); __FTM( S0wS0pS1p); __FTM( S0wS1wS1p); __FTM( S0pS1wS1p);
+
+  __FTM( S0wS1wS0S1Dist); __FTM( S0pS1pS0S1Dist);
+  __FTM( S0wS1pS0S1Dist); __FTM( S0pS1wS0S1Dist);
 
   __FUM(W0); __FUM( P0 );
   __FBM( W0W1 ); __FBM(P0P1);

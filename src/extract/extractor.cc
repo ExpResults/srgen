@@ -70,6 +70,10 @@ int Pipe::get_state_packed_score(const StateItem & item,
 
       __GBS(S0w, S1w);  __GBS(S0p, S1p);
       __GBS(S0w, S1p);  __GBS(S0p, S1w);
+
+      __GTS(S0w, S1w, S0S1Dist); __GTS(S0p, S1p, S0S1Dist);
+      __GTS(S0w, S1p, S0S1Dist); __GTS(S0p, S1w, S0S1Dist);
+
     }
 
     __GUS(W0);          __GUS(P0);
@@ -139,6 +143,9 @@ int Pipe::update_state_score(const StateItem & item,
 
     __UBS(S0w, S1w);  __UBS(S0p, S1p);
     __UBS(S0w, S1p);  __UBS(S0p, S1w);
+
+    __UTS(S0w, S1w, S0S1Dist); __UTS(S0p, S1p, S0S1Dist);
+    __UTS(S0w, S1p, S0S1Dist); __UTS(S0p, S1w, S0S1Dist);
   }
 
   __UUS(W0);          __UUS(P0);

@@ -2,25 +2,29 @@
 #define __SR_CONTEXT_H__
 
 #include "types/state.h"
+#include "util/utils.h"   //  for bin
+
 #define _LEGEAL_RANGE_(x) (((x) >= 0) && ((x) < N))
 
 #define __SET_CTX(prefix) do { \
   prefix##w = (item.instance_ref->forms).at(prefix); \
   prefix##p = item.postags[prefix]; \
   prefix##l = item.deprels[prefix]; \
+  /*prefix##k = item.rank[prefix]; */\
 } while (0);
 
 #define __CLEAR_CTX(prefix) do { \
   prefix##w = WordEncoderAndDecoder::NONE; \
   prefix##p = PoSTagEncoderAndDecoder::NONE; \
   prefix##l = DeprelsEncoderAndDecoder::NONE; \
+  /*prefix##k = 0;*/ \
 } while (0);
 
 #define __SET_CNT(prefix) do { \
   prefix##la = item.nr_left_children[prefix]; \
   prefix##ra = item.nr_right_children[prefix]; \
-  prefix##ls = item.nr_left_descendant[prefix]; \
-  prefix##rs = item.nr_right_descendant[prefix]; \
+  prefix##ls = bin(item.nr_left_descendant[prefix]); \
+  prefix##rs = bin(item.nr_right_descendant[prefix]); \
 } while (0);
 
 #define __CLEAR_CNT(prefix) do { \
@@ -119,6 +123,7 @@ struct Context {
       S1w = forms.at(S1);
       S1p = item.postags[S1];
       __SET_CNT(S1);
+      S0S1Dist = bin(item.rank[S1]- item.rank[S0]);
 
       if ( _LEGEAL_RANGE_(item.left_most_child[S1]) ) {
         int S1ld = item.left_most_child[S1];
@@ -174,6 +179,7 @@ struct Context {
       __CLEAR_CTX(S1rd);
       __CLEAR_CTX(S1r2d);
       __CLEAR_CTX(S1rdd);
+      S0S1Dist = 0;
     }
 
     // SHIFTED words
@@ -224,17 +230,21 @@ struct Context {
   word_t    S0w, S0ldw, S0rdw, S0lddw, S0rddw, S0l2dw, S0r2dw;
   postag_t  S0p, S0ldp, S0rdp, S0lddp, S0rddp, S0l2dp, S0r2dp;
   deprel_t       S0ldl, S0rdl, S0lddl, S0rddl, S0l2dl, S0r2dl;
+  int       S0k, S0ldk, S0rdk, S0lddk, S0rddk, S0l2dk, S0r2dk;
   int       S0la, S0ra;
   int       S0ls, S0rs;
 
   word_t    S1w, S1ldw, S1rdw, S1lddw, S1rddw, S1l2dw, S1r2dw;
   postag_t  S1p, S1ldp, S1rdp, S1lddp, S1rddp, S1l2dp, S1r2dp;
   deprel_t       S1ldl, S1rdl, S1lddl, S1rddl, S1l2dl, S1r2dl;
+  int       S1k, S1ldk, S1rdk, S1lddk, S1rddk, S1l2dk, S1r2dk;
   int       S1la, S1ra;
   int       S1ls, S1rs;
 
   word_t    W0, W1, W2;
   postag_t  P0, P1, P2;
+
+  int       S0S1Dist;
 };
 
 }

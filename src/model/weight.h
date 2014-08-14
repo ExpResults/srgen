@@ -54,6 +54,9 @@ struct BasicWeight {
   bs_map_t    S0wS1p,   S0pS1w;
   ts_map_t    S0wS0pS1w, S0wS0pS1p, S0wS1wS1p, S0pS1wS1p;
 
+  ts_map_t    S0wS1wS0S1Dist, S0pS1pS0S1Dist;
+  ts_map_t    S0wS1pS0S1Dist, S0pS1wS0S1Dist;
+
   us_map_t    W0, P0;
   bs_map_t    W0W1, P0P1;
   ts_map_t    W0W1W2, P0P1P2;

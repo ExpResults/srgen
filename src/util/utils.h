@@ -12,6 +12,9 @@ void shuffle_instance(const dependency_t & instance,
     dependency_t & shuffled_instance,
     std::vector<int> & order);
 
+
+int bin(int x);
+
 }
 
 }

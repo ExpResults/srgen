@@ -50,7 +50,7 @@ void StateItem::clear() {
 
   previous = 0;
 
-  left_arced.reset();
+  // left_arced.reset();
 
   buffer.set();     // fill all words in buffer
 
@@ -70,6 +70,9 @@ void StateItem::clear() {
 
   postag_sequence.push_back(PoSTagEncoderAndDecoder::BEGIN);
   //
+
+  //
+  memset(rank, 0, sizeof(rank));
 
   // Set up heads to no-head
   memset(heads, -1, sizeof(heads));
@@ -114,7 +117,7 @@ void StateItem::copy(const StateItem & other) {
 
   postag_sequence = other.postag_sequence;
 
-  left_arced = other.left_arced;
+  // left_arced = other.left_arced;
 
   buffer = other.buffer;
 
@@ -123,6 +126,7 @@ void StateItem::copy(const StateItem & other) {
   last_action = other.last_action;
 
   #define _COPY(name) memcpy((name), other.name, sizeof(name));
+  _COPY(rank);
   _COPY(postags);
   _COPY(heads);
   _COPY(deprels);
@@ -163,6 +167,9 @@ bool StateItem::shift(postag_t label, word_t word, int index) {
 
   // Erase this word.
   buffer.set(index, 0);
+
+  //
+  rank[index] = word_sequence.size();
 
   // Set up the postag.
   postags[index] = label;
@@ -205,7 +212,7 @@ bool StateItem::left_arc(deprel_t deprel) {
   heads[top1] = top0;
   deprels[top1] = deprel;
 
-  left_arced.set(top0, 1);
+  // left_arced.set(top0, 1);
 
   // Main left child.
   if (left_most_child[top0] == -1) {
@@ -224,7 +231,9 @@ bool StateItem::left_arc(deprel_t deprel) {
   }
 
   ++ nr_left_children[top0];
-  nr_left_descendant[top0] += (nr_left_descendant[top1] + nr_right_descendant[top1] + 1);
+  nr_left_descendant[top0] += (nr_left_descendant[top1]
+      + nr_right_descendant[top1]
+      + (instance_ref->phrases[top1].second - instance_ref->phrases[top1].first));
   return true;
 }
 
@@ -273,7 +282,9 @@ bool StateItem::right_arc(deprel_t deprel) {
   }
 
   ++ nr_right_children[top1];
-  nr_right_descendant[top1] += (nr_right_descendant[top0] + nr_left_descendant[top0] + 1);
+  nr_right_descendant[top1] += (nr_right_descendant[top0] 
+      + nr_left_descendant[top0]
+      + (instance_ref->phrases[top0].second - instance_ref->phrases[top0].first));
   return true;
 }
 
