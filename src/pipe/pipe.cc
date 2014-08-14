@@ -337,6 +337,7 @@ void Pipe::work(const dependency_t* input,
 
     if (current_beam_size == 0) {
       BOOST_LOG_TRIVIAL(warning) << "#" << now << ": CURRENT Beam size is ZERO!";
+      break;
     }
 
     if (train_mode) {

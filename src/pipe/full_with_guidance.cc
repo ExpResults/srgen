@@ -15,6 +15,7 @@ FullWithGuidancePipe::~FullWithGuidancePipe() {
 
 int FullWithGuidancePipe::config_sentence(const dependency_t* input) {
   input_ref = input;
+  tree.set_ref(input);
   tree_with_guidance.set_ref(input);
   return 0;
 }

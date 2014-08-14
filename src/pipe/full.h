@@ -28,7 +28,7 @@ protected:
 
   /**/
   int config_initial_lattice();
-private:
+protected:
   DependencyTree tree;
 };
 
