@@ -4,9 +4,9 @@
 #include "types/action.h"
 #include "types/state.h"
 #include "types/settings.h"
-#include "types/weight.h"
 #include "types/constraint.h"
 #include "types/tree.h"
+#include "model/weight.h"
 
 namespace ZGen {
 
@@ -114,7 +114,10 @@ protected:
   const dependency_t* input_ref;
 
   //
-  StateItem * lattice;
+  StateItem* lattice;
+
+  //
+  weight_t weight;
 
 private:
 
@@ -199,102 +202,8 @@ private:
   packed_score_t packed_score;
   //
 
-  weight_t weight;
-  //
-
   scored_transition_t candidate_transitions[kMaxBeamSize];
   //
-};
-
-
-//
-class NonePipe: public Pipe {
-public:
-  NonePipe(const char * postag_dict_path,
-      int beam_size);
-
-protected:
-  /**
-   * Get the possible actions from the input item.
-   *
-   *  @param[in]  item          The input item
-   *  @param[out] actions       The possible actions
-   *  @return     int           The number of possible actons
-   */
-  int get_possible_actions(const StateItem & item, action_collection_t & actions);
-
-  /**
-   * Config the sentence onto the Pipe
-   *
-   *  @param[in]  input       The input
-   *  @param[in]  now         The now
-   */
-  int config_sentence(const dependency_t* input);
-
-  int config_initial_lattice();
-
-  constraint_t constraint;
-};
-
-
-//
-class PoSTagPipe : public Pipe {
-public:
-  PoSTagPipe(int beam_size);
-
-protected:
-  /**
-   * Get the possible actions from the input item.
-   *
-   *  @param[in]  item          The input item
-   *  @param[out] actions       The possible actions
-   *  @return     int
-   */
-  int get_possible_actions(const StateItem & item, action_collection_t & actions);
-
-  /**/
-  int config_sentence(const dependency_t* input);
-
-  /**/
-  int config_initial_lattice();
-};
-
-
-//
-class FullPipe : public Pipe {
-public:
-  FullPipe(int beam_size);
-  ~FullPipe();
-
-protected:
-  /**/
-  int get_possible_actions(const StateItem & item, action_collection_t & actions);
-
-  /**
-   * Config the input onto this pipe. This function
-   * cache tree structure information in the tree.
-   *
-   *  @param[in]  input   The input dependency
-   *  @param[in]  now     The timestamp
-   */
-  virtual int config_sentence(const dependency_t* input);
-
-  /**/
-  int config_initial_lattice();
-private:
-  DependencyTree cache;
-};
-
-
-// The full pipe with guidance.
-class FullPipeWithGuidance: public FullPipe {
-public:
-  FullPipeWithGuidance(int beam_size);
-  ~FullPipeWithGuidance();
-
-  int config_sentence(const dependency_t* input);
-private:
-  DependencyTreeWithGuidance cache;
 };
 
 }

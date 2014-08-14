@@ -10,6 +10,10 @@
 #include <boost/log/support/date_time.hpp>
 #include "io/io.h"
 #include "pipe/pipe.h"
+#include "pipe/none.h"
+#include "pipe/postag.h"
+#include "pipe/full.h"
+#include "pipe/full_with_guidance.h"
 #include "types/action.h"
 #include "types/instance.h"
 #include "types/settings.h"
@@ -207,9 +211,10 @@ int main(int argc, char * argv[]) {
   BOOST_LOG_TRIVIAL(info) << "SHIFT-REDUCE generator ["
     << (train_mode ? "train" : "test") <<"] v0.1";
   BOOST_LOG_TRIVIAL(info) << "----------------------------------";
+  BOOST_LOG_TRIVIAL(info) << "REPORT: beam-size : " << opts.beam_size;
+  BOOST_LOG_TRIVIAL(info) << "REPORT: input-type: " << vm["type"].as<std::string>();
 
   namespace SR = ZGen::ShiftReduce;
-
   // [Allocate a pipe.
   SR::Pipe * pipe = NULL;
 
@@ -225,6 +230,9 @@ int main(int argc, char * argv[]) {
       break;
     case option_t::FULL:
       pipe = new SR::FullPipe(opts.beam_size);
+      break;
+    case option_t::FULL_WITH_GUIDANCE:
+      pipe = new SR::FullWithGuidancePipe(opts.beam_size);
       break;
     default:
       BOOST_LOG_TRIVIAL(error) << "Unknown error.";
@@ -276,7 +284,6 @@ int main(int argc, char * argv[]) {
     }
   }
 
-  BOOST_LOG_TRIVIAL(info) << "SRG: beam_size = " << opts.beam_size;
   for (int i = 0; i < data.size(); ++ i) {
     std::vector<SR::action::action_t> gold_actions;
     std::vector<int> order;

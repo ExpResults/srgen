@@ -19,12 +19,17 @@ add_executable (srg
     ${SOURCE_DIR}/types/constraint.cc
     ${SOURCE_DIR}/types/tree.cc
     ${SOURCE_DIR}/types/instance.cc
-    ${SOURCE_DIR}/types/weight.cc
     ${SOURCE_DIR}/types/state.cc
+    ${SOURCE_DIR}/model/weight.cc
     ${SOURCE_DIR}/util/utils.cc
     ${SOURCE_DIR}/extract/extractor.cc
+    ${SOURCE_DIR}/extract/full_with_guidance_extractor.cc
     ${SOURCE_DIR}/io/io.cc
     ${SOURCE_DIR}/pipe/pipe.cc
+    ${SOURCE_DIR}/pipe/none.cc
+    ${SOURCE_DIR}/pipe/postag.cc
+    ${SOURCE_DIR}/pipe/full.cc
+    ${SOURCE_DIR}/pipe/full_with_guidance.cc
     ${SOURCE_DIR}/zgen/srg.cc)
 
 add_executable (unittest

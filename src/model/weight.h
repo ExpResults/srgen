@@ -8,7 +8,7 @@ namespace ZGen {
 
 namespace ShiftReduce {
 
-struct Weight {
+struct BasicWeight {
   us_map_t    S0w,      S0p;
   us_map_t    S0ldw,    S0ldp,    S0ldl;
   us_map_t    S0lddw,   S0lddp,   S0lddl;
@@ -58,6 +58,9 @@ struct Weight {
   bs_map_t    W0W1, P0P1;
   ts_map_t    W0W1W2, P0P1P2;
 
+  us_map_t    S0lvl0, S0lvl1, S0lvl2;
+  us_map_t    S1lvl0, S1lvl1, S1lvl2;
+
   bool flush_weight(int now);
 
   //
@@ -68,7 +71,7 @@ struct Weight {
 
 };
 
-typedef Weight  weight_t;
+typedef BasicWeight  weight_t;
 
 
 template<typename Mapped, typename Entry>

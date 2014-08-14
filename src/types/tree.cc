@@ -188,6 +188,18 @@ void DependencyTreeWithGuidance::color(int now, int _0, int _1, int _2) {
   }
 }
 
+int DependencyTreeWithGuidance::lvl0(int i) const {
+  return lvl0_deprels[i];
+}
+
+int DependencyTreeWithGuidance::lvl1(int i) const {
+  return lvl1_deprels[i];
+}
+
+int DependencyTreeWithGuidance::lvl2(int i) const {
+  return lvl2_deprels[i];
+}
+
 }
 
 }

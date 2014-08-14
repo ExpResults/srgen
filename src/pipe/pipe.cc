@@ -1,7 +1,6 @@
 #include <algorithm>
 #include <boost/log/trivial.hpp>
 #include <boost/assert.hpp>
-#include "types/state.h"
 #include "pipe/pipe.h"
 
 namespace ZGen {
@@ -16,10 +15,12 @@ static bool TransitionHeapMore (const Pipe::scored_transition_t & x,
 
 Pipe::Pipe(int beam_size)
   : max_beam_size(beam_size) {
+
   // Allocate a very large lattice.
   if (max_beam_size > kMaxBeamSize) {
     max_beam_size = kMaxBeamSize;
   }
+
   lattice = new StateItem[kMaxSteps * kMaxBeamSize];
   BOOST_LOG_TRIVIAL(info) << "PIPE: lattice[" << kMaxSteps * kMaxBeamSize << "] allocated";
 }
@@ -411,201 +412,6 @@ void Pipe::work(const dependency_t* input,
         input->is_phrases[j]);
     k += words.size();
   }
-}
-
-
-// The NonePipe
-NonePipe::NonePipe(const char * postag_dict_path,
-    int beam_size)
-  : constraint(postag_dict_path),
-  Pipe(beam_size) {
-}
-
-
-int NonePipe::get_possible_actions(const StateItem & item,
-    std::vector<action::action_t> & actions) {
-  actions.clear();
-
-  // Then loop over the words in the buffer.
-  for (int j = 0; j < item.N; ++ j) {
-    if (item.buffer.test(j)) {
-
-      // Generate all possible SHIFT actions, first loop over possible PoSTags.
-      const char * name = WordEngine::get_const_instance().decode(item.instance_ref->forms.at(j));
-      std::vector< postag_t > possible_tags;
-      if (input_ref->is_phrases[j]) {
-        possible_tags.push_back(PoSTagEncoderAndDecoder::NP);
-      } else {
-        constraint.get_possible_tags(name, possible_tags);
-      }
-
-      for (int i = 0; i < possible_tags.size(); ++ i) {
-        postag_t tag = possible_tags[i];
-        actions.push_back(action::action_t(ActionEncoderAndDecoder::SH, tag,
-              item.instance_ref->forms[j], j));
-      }
-    }
-  }
-
-  if (item.stack.size() > 2) {
-    // There is one pseudo node in the stack
-    // Generate LEFT-ARC and RIGHT-ARC actions
-    for (int i = kStartIndexOfValidDependencyRelation;
-        i < kNumberOfDependencyRelations; ++ i) {
-      actions.push_back(action::action_t(ActionEncoderAndDecoder::LA, i, 0));
-      actions.push_back(action::action_t(ActionEncoderAndDecoder::RA, i, 0));
-    }
-  }
-
-  return (int)actions.size();
-}
-
-
-int NonePipe::config_sentence(const dependency_t* input) {
-  input_ref = input;
-}
-
-
-int NonePipe::config_initial_lattice() {
-}
-
-
-PoSTagPipe::PoSTagPipe(int beam_size)
-  : Pipe(beam_size) {
-}
-
-
-int PoSTagPipe::get_possible_actions(const StateItem & item,
-    action_collection_t & actions) {
-  actions.clear();
-
-  // Then loop over the words in the buffer.
-  for (int j = 0; j < item.N; ++ j) {
-    if (item.buffer.test(j)) {
-      word_t   word = input_ref->forms[j];
-      postag_t  tag = input_ref->postags[j];
-      actions.push_back(action::action_t(ActionEncoderAndDecoder::SH, tag, word, j));
-    }
-  }
-
-  if (item.stack.size() > 2) {
-    // There is one pseudo node in the stack
-    // Generate LEFT-ARC and RIGHT-ARC actions
-    for (int i = kStartIndexOfValidDependencyRelation;
-        i < kNumberOfDependencyRelations; ++ i) {
-      actions.push_back(action::action_t(ActionEncoderAndDecoder::LA, i, 0));
-      actions.push_back(action::action_t(ActionEncoderAndDecoder::RA, i, 0));
-    }
-  }
-
-  return (int)actions.size();
-}
-
-
-int PoSTagPipe::config_sentence(const dependency_t* input) {
-  input_ref = input;
-}
-
-
-int PoSTagPipe::config_initial_lattice() {
-}
-
-
-FullPipe::FullPipe(int beam_size)
-  : Pipe(beam_size) {
-}
-
-FullPipe::~FullPipe() {
-  BOOST_LOG_TRIVIAL(error) << "PIPE: Should not be deallocate";
-}
-
-//
-int FullPipe::get_possible_actions(const StateItem & item,
-    std::vector<action::action_t> & actions) {
-  actions.clear();
-
-  if (item.stack.size() == 1) {
-    for (int j = 0; j < item.N; ++ j) {
-      if (item.buffer.test(j)) {
-        word_t   word = input_ref->forms[j];
-        postag_t  tag = input_ref->postags[j];
-        actions.push_back(action::action_t(ActionEncoderAndDecoder::SH, tag, word, j));
-      }
-    }
-  } else {
-    bool all_descendants_shifted = true;
-    int top0 = item.stack.back();
-    const DependencyTree::edgeset_t& descendants = cache.descendants(top0);
-
-    for (int j = 0; j < descendants.size(); ++ j) {
-      int d = descendants[j];
-      if (item.buffer.test(d)) {
-        all_descendants_shifted = false;
-        break;
-      }
-    }
-
-    if (!all_descendants_shifted) {
-      for (int j = 0; j < descendants.size(); ++ j) {
-        int d = descendants[j];
-        if (item.buffer.test(d)) {
-          word_t word = input_ref->forms[d];
-          postag_t tag = input_ref->postags[d];
-          actions.push_back(action::action_t(ActionEncoderAndDecoder::SH, tag, word, d));
-        }
-      }
-    } else {
-      int top1 = (item.stack.size() > 2 ? item.stack[item.stack.size() - 2]: -1);
-
-      if (top1 >= 0 && cache.arc(top0, top1)) {
-        deprel_t deprel = input_ref->deprels[top1];
-        actions.push_back(action::action_t(ActionEncoderAndDecoder::LA, deprel, 0));
-      } else if (top1 >= 0 && cache.arc(top1, top0)) {
-        deprel_t deprel = input_ref->deprels[top0];
-        actions.push_back(action::action_t(ActionEncoderAndDecoder::RA, deprel, 0));
-      } else {
-        const DependencyTree::edgeset_t& siblings = cache.siblings(top0);
-
-        for (int i = 0; i < siblings.size(); ++ i) {
-          int s = siblings[i];
-          if (item.buffer.test(s)) {
-            word_t word = input_ref->forms[s];
-            postag_t tag = input_ref->postags[s];
-            actions.push_back(action::action_t(ActionEncoderAndDecoder::SH, tag, word, s));
-          }
-        }
-
-        int h = cache.head(top0);
-        if (item.buffer.test(h)) {
-          word_t word = input_ref->forms[h];
-          postag_t tag = input_ref->postags[h];
-          actions.push_back(action::action_t(ActionEncoderAndDecoder::SH, tag, word, h));
-        }
-      }
-    }
-  }
-
-  return (int)actions.size();
-}
-
-
-int FullPipe::config_sentence(const dependency_t* input) {
-  input_ref= input;
-  cache.set_ref(input);
-  return 0;
-}
-
-
-int FullPipe::config_initial_lattice() {
-  for (int i = 0; i < input_ref->deprels.size(); ++ i) {
-    lattice->deprels[i] = input_ref->deprels[i];
-  }
-}
-
-int FullPipeWithGuidance::config_sentence(const dependency_t* input) {
-  input_ref = input;
-  cache.set_ref(input);
-  return 0;
 }
 
 }

@@ -1,6 +1,5 @@
 #include <fstream>
-#include "types/weight.h"
-
+#include "model/weight.h"
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/foreach.hpp>
@@ -27,7 +26,7 @@ namespace ZGen {
 
 namespace ShiftReduce {
 
-bool Weight::save_weight(const char * filename) {
+bool BasicWeight::save_weight(const char * filename) {
   std::ofstream ofs(filename);
   if (!ofs.good()) {
     return false;
@@ -83,12 +82,15 @@ bool Weight::save_weight(const char * filename) {
   oa << W0W1 << P0P1;
   oa << W0W1W2 << P0P1P2;
 
+  oa << S0lvl0 << S0lvl1 << S0lvl2;
+  oa << S1lvl0 << S1lvl1 << S1lvl2;
+
   ofs.close();
 
   return true;
 }
 
-bool Weight::load_weight(const char * filename) {
+bool BasicWeight::load_weight(const char * filename) {
   std::ifstream ifs(filename);
   if (!ifs.good()) {
     return false;
@@ -144,11 +146,14 @@ bool Weight::load_weight(const char * filename) {
   ia >> W0W1 >> P0P1;
   ia >> W0W1W2 >> P0P1P2;
 
+  ia >> S0lvl0 >> S0lvl1 >> S0lvl2;
+  ia >> S1lvl0 >> S1lvl1 >> S1lvl2;
+
   ifs.close();
   return true;
 }
 
-bool Weight::flush_weight(int now) {
+bool BasicWeight::flush_weight(int now) {
   __FUM( S0w);     __FUM( S0p);
   __FUM( S0ldw);   __FUM( S0ldp);   __FUM( S0ldl);
   __FUM( S0lddw);  __FUM( S0lddp);  __FUM( S0lddl);
@@ -198,6 +203,10 @@ bool Weight::flush_weight(int now) {
   __FUM(W0); __FUM( P0 );
   __FBM( W0W1 ); __FBM(P0P1);
   __FTM(W0W1W2); __FTM( P0P1P2 );
+
+  __FUM(S0lvl0); __FUM(S0lvl1); __FUM(S0lvl2);
+  __FUM(S1lvl0); __FUM(S1lvl1); __FUM(S1lvl2);
+
   return true;
 }
 
