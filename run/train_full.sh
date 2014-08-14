@@ -31,13 +31,13 @@ cp ${ROOT}/bin/srg ${EXE}
 
 rm ${MODEL_PREFIX}.*
 
-for i in `seq 1 150`; do
+for i in `seq 1 50`; do
     ${EXE} learn -m ${MODEL_PREFIX} \
         -t full \
         -i ${TRAIN_DEP}
 
-    cp ${MODEL_PREFIX}.weight ${MODEL_PREFIX}.weight.${i}
-    cp ${MODEL_PREFIX}.word   ${MODEL_PREFIX}.word.${i}
+    tar zcvf ${MODEL_PREFIX}.weight.${i}.tgz ${MODEL_PREFIX}.weight
+    tar zcvf ${MODEL_PREFIX}.word.${i}.tgz ${MODEL_PREFIX}.word
 
     if [ $i -ge 1 ]; then
         ${EXE} test -m ${MODEL_PREFIX} \

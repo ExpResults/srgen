@@ -9,27 +9,29 @@ set (CMAKE_CXX_FLAGS "-g")
 set (EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 set (SOURCE_DIR             ${PROJECT_SOURCE_DIR}/src)
 
+include_directories (${SOURCE_DIR})
+
 link_directories (${Boost_LIBRARY_DIRS})
 
 add_executable (srg
-    ${SOURCE_DIR}/engine.cc
-    ${SOURCE_DIR}/action.cc
-    ${SOURCE_DIR}/constraint.cc
-    ${SOURCE_DIR}/tree.cc
-    ${SOURCE_DIR}/instance.cc
-    ${SOURCE_DIR}/extractor.cc
-    ${SOURCE_DIR}/weight.cc
-    ${SOURCE_DIR}/io.cc
-    ${SOURCE_DIR}/pipe.cc
-    ${SOURCE_DIR}/state.cc
-    ${SOURCE_DIR}/srg.cc
-    ${SOURCE_DIR}/utils.cc)
+    ${SOURCE_DIR}/types/engine.cc
+    ${SOURCE_DIR}/types/action.cc
+    ${SOURCE_DIR}/types/constraint.cc
+    ${SOURCE_DIR}/types/tree.cc
+    ${SOURCE_DIR}/types/instance.cc
+    ${SOURCE_DIR}/types/weight.cc
+    ${SOURCE_DIR}/types/state.cc
+    ${SOURCE_DIR}/util/utils.cc
+    ${SOURCE_DIR}/extract/extractor.cc
+    ${SOURCE_DIR}/io/io.cc
+    ${SOURCE_DIR}/pipe/pipe.cc
+    ${SOURCE_DIR}/zgen/srg.cc)
 
 add_executable (unittest
-    ${SOURCE_DIR}/instance.cc
-    ${SOURCE_DIR}/engine.cc
-    ${SOURCE_DIR}/utils.cc
-    ${SOURCE_DIR}/test.cc)
+    ${SOURCE_DIR}/types/instance.cc
+    ${SOURCE_DIR}/types/engine.cc
+    ${SOURCE_DIR}/util/utils.cc
+    ${SOURCE_DIR}/unittest/test.cc)
 
 target_link_libraries (srg
     boost_program_options

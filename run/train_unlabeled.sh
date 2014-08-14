@@ -3,13 +3,13 @@
 ROOT=`pwd`
 
 TRAIN_TOK=${ROOT}/data/train/train.tok
-TRAIN_DEP=${ROOT}/data/train/train.dep
+TRAIN_DEP=${ROOT}/data/train/train.dep.unlabel
 TEST_TOK=${ROOT}/data/input/testi.tok
-TEST_DEP=${ROOT}/data/test/testr.dep
+TEST_DEP=${ROOT}/data/test/testr.dep.unlabel
 DEV_TOK=${ROOT}/data/dev/devi.tok
-DEV_DEP=${ROOT}/data/dev/devr.dep
+DEV_DEP=${ROOT}/data/dev/devr.dep.unlabel
 
-SIG=`date '+%Y-%m-%d-%H%M%S'`-none
+SIG=`date '+%Y-%m-%d-%H%M%S'`-unlabeled
 
 DIC=${ROOT}/data/dic/dic.7
 
@@ -32,24 +32,21 @@ cp ${ROOT}/bin/srg ${EXE}
 rm ${MODEL_PREFIX}.*
 
 for i in `seq 1 50`; do
-    ${EXE} learn -t none \
-        -m ${MODEL_PREFIX} \
-        -p ${DIC}   \
+    ${EXE} learn -m ${MODEL_PREFIX} \
+        -t full \
         -i ${TRAIN_DEP}
 
     tar zcvf ${MODEL_PREFIX}.weight.${i}.tgz ${MODEL_PREFIX}.weight
     tar zcvf ${MODEL_PREFIX}.word.${i}.tgz ${MODEL_PREFIX}.word
 
-    if [ $i -ge 10 ]; then
-        ${EXE} test -t none \
-            -m ${MODEL_PREFIX} \
-            -p ${DIC} \
+    if [ $i -ge 1 ]; then
+        ${EXE} test -m ${MODEL_PREFIX} \
+            -t full \
             -i ${DEV_DEP} \
             -o ${OUTPUT_DIR}/devo.dep.${i}
 
-        ${EXE} test -t none \
-            -m ${MODEL_PREFIX} \
-            -p ${DIC}   \
+        ${EXE} test -m ${MODEL_PREFIX} \
+            -t full \
             -i ${TEST_DEP} \
             -o ${OUTPUT_DIR}/testo.dep.${i}
 
