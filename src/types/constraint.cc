@@ -1,10 +1,11 @@
-#include "constraint.h"
 #include <iostream>
 #include <fstream>
 
-#include "boost/regex.hpp"
-#include "boost/algorithm/string.hpp"
-#include "boost/algorithm/string/split.hpp"
+#include <boost/regex.hpp>
+#include <boost/algorithm/string.hpp>
+#include <boost/algorithm/string/split.hpp>
+
+#include "types/constraint.h"
 
 namespace ZGen {
 

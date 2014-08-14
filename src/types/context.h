@@ -1,7 +1,7 @@
 #ifndef __SR_CONTEXT_H__
 #define __SR_CONTEXT_H__
 
-#include "state.h"
+#include "types/state.h"
 #define _LEGEAL_RANGE_(x) (((x) >= 0) && ((x) < N))
 
 #define __SET_CTX(prefix) do { \

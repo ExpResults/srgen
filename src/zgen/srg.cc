@@ -8,16 +8,17 @@
 #include <boost/log/utility/setup/console.hpp>
 #include <boost/log/utility/setup/common_attributes.hpp>
 #include <boost/log/support/date_time.hpp>
+#include "io/io.h"
+#include "pipe/pipe.h"
+#include "types/action.h"
+#include "types/instance.h"
+#include "types/settings.h"
+#include "util/utils.h"
 
-#include "io.h"
-#include "pipe.h"
-#include "action.h"
-#include "settings.h"
-#include "utils.h"
 // #include "debug.h"
 
 struct Option {
-  enum { NONE, POSTAG, PARTIAL, FULL};
+  enum { NONE, POSTAG, PARTIAL, FULL, FULL_WITH_GUIDANCE};
 
   // [The input type
   int input_type;
@@ -103,6 +104,8 @@ bool parse_config(boost::program_options::variables_map & vm,
       opts.input_type = option_t::PARTIAL;
     } else if (vm["type"].as<std::string>() == "full") {
       opts.input_type = option_t::FULL;
+    } else if (vm["type"].as<std::string>() == "full-guide") {
+      opts.input_type = option_t::FULL_WITH_GUIDANCE;
     } else {
       BOOST_LOG_TRIVIAL(error) << "Unknown type [" << vm["type"].as<std::string>() << "]";
       return false;
@@ -131,7 +134,7 @@ bool parse_config(boost::program_options::variables_map & vm,
   }
 
   // [Parse beam size
-  opts.beam_size = 32;
+  opts.beam_size = 64;
   if (vm.count("beam")) {
     opts.beam_size = vm["beam"].as<int>();
   }
@@ -273,6 +276,7 @@ int main(int argc, char * argv[]) {
     }
   }
 
+  BOOST_LOG_TRIVIAL(info) << "SRG: beam_size = " << opts.beam_size;
   for (int i = 0; i < data.size(); ++ i) {
     std::vector<SR::action::action_t> gold_actions;
     std::vector<int> order;

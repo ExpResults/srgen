@@ -1,8 +1,9 @@
 #ifndef __SR_UTILS_H__
 #define __SR_UTILS_H__
 
-#include "settings.h"
-#include "instance.h"
+#include "types/settings.h"
+#include "types/instance.h"
+
 namespace ZGen {
 
 namespace ShiftReduce {

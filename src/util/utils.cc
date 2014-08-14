@@ -1,5 +1,5 @@
-#include "utils.h"
-#include "engine.h"
+#include "util/utils.h"
+#include "types/engine.h"
 #include <ctime>
 
 namespace ZGen {

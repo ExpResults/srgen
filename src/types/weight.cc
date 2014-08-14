@@ -1,5 +1,5 @@
 #include <fstream>
-#include "weight.h"
+#include "types/weight.h"
 
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/archive/text_oarchive.hpp>

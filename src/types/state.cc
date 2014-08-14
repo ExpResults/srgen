@@ -1,13 +1,13 @@
 #include <cstring>
-#include "state.h"
-#include "engine.h"
-#include "action.h"
+#include "types/state.h"
+#include "types/engine.h"
+#include "types/action.h"
 
 namespace ZGen {
 
 namespace ShiftReduce {
 
-std::ostream & operator << (std::ostream & os, const StateItem & item) {
+std::ostream& operator << (std::ostream& os, const StateItem& item) {
   os << "ADDRESS:   " << (void *)(&item)  << std::endl;
   os << "PREV ADDR: " << (void *)(&item)  << std::endl;
   os << "SCORE:     " << item.score       << std::endl;
@@ -15,18 +15,18 @@ std::ostream & operator << (std::ostream & os, const StateItem & item) {
 }
 
 
-StateItem & StateItem::operator = (const StateItem & other) {
+StateItem& StateItem::operator = (const StateItem& other) {
   copy(other);
   return *(this);
 }
 
 
-bool StateItem::operator < (const StateItem & other) const {
+bool StateItem::operator < (const StateItem& other) const {
   return score < other.score;
 }
 
 
-bool StateItem::operator > (const StateItem & other) const {
+bool StateItem::operator > (const StateItem& other) const {
   return score > other.score;
 }
 
@@ -158,10 +158,8 @@ bool StateItem::shift(postag_t label, word_t word, int index) {
       i < instance_ref->phrases.at(index).second;
       ++ i) {
     word_sequence.push_back( instance_ref->words.at(i) );
+    postag_sequence.push_back( label );
   }
-
-  //
-  postag_sequence.push_back( label );
 
   // Erase this word.
   buffer.set(index, 0);

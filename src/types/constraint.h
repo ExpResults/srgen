@@ -1,9 +1,9 @@
 #ifndef __SR_CONSTRAINT_H__
 #define __SR_CONSTRAINT_H__
 
-#include "settings.h"
-#include "instance.h"
-#include "engine.h"
+#include "types/settings.h"
+#include "types/instance.h"
+#include "types/engine.h"
 
 #include <boost/unordered_map.hpp>
 

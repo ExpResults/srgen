@@ -1,9 +1,8 @@
-#include "pipe.h"
-#include "state.h"
 #include <algorithm>
-
 #include <boost/log/trivial.hpp>
 #include <boost/assert.hpp>
+#include "types/state.h"
+#include "pipe/pipe.h"
 
 namespace ZGen {
 
@@ -79,6 +78,7 @@ int Pipe::extend_candidate_transition(const scored_transition_t & trans,
 
 void Pipe::clear_candidate_transition() {
   for (int i = 0; i < max_beam_size; ++ i) {
+    candidate_transitions[i].get<0>() = NULL;
     candidate_transitions[i].get<2>() = -inf;
   }
 }
@@ -288,7 +288,7 @@ void Pipe::work(const dependency_t* input,
   lattice_index[1] = lattice + 1;
 
   // Set the correct state link.
-  StateItem* correct_state = lattice;
+  const StateItem* correct_state = lattice;
 
   int step;
   for (step = 1; step <= steps; ++ step) {
@@ -299,7 +299,7 @@ void Pipe::work(const dependency_t* input,
 
     clear_candidate_transition();
 
-    for (StateItem * from = lattice_index[step- 1]; from != lattice_index[step]; ++ from) {
+    for (const StateItem * from = lattice_index[step- 1]; from != lattice_index[step]; ++ from) {
       BOOST_LOG_TRIVIAL(trace) << "EXTEND from state [" << (void *)from << "]";
 
       get_possible_actions((*from), possible_actions);
@@ -499,8 +499,8 @@ int PoSTagPipe::get_possible_actions(const StateItem & item,
   }
 
   return (int)actions.size();
-
 }
+
 
 int PoSTagPipe::config_sentence(const dependency_t* input) {
   input_ref = input;
@@ -534,7 +534,8 @@ int FullPipe::get_possible_actions(const StateItem & item,
     }
   } else {
     bool all_descendants_shifted = true;
-    const DependencyTree::edgeset_t& descendants = cache.descendants(item.stack.back());
+    int top0 = item.stack.back();
+    const DependencyTree::edgeset_t& descendants = cache.descendants(top0);
 
     for (int j = 0; j < descendants.size(); ++ j) {
       int d = descendants[j];
@@ -554,7 +555,6 @@ int FullPipe::get_possible_actions(const StateItem & item,
         }
       }
     } else {
-      int top0 = item.stack.back();
       int top1 = (item.stack.size() > 2 ? item.stack[item.stack.size() - 2]: -1);
 
       if (top1 >= 0 && cache.arc(top0, top1)) {
@@ -564,7 +564,7 @@ int FullPipe::get_possible_actions(const StateItem & item,
         deprel_t deprel = input_ref->deprels[top0];
         actions.push_back(action::action_t(ActionEncoderAndDecoder::RA, deprel, 0));
       } else {
-        const DependencyTree::edgeset_t& siblings = cache.siblings(item.stack.back());
+        const DependencyTree::edgeset_t& siblings = cache.siblings(top0);
 
         for (int i = 0; i < siblings.size(); ++ i) {
           int s = siblings[i];
@@ -591,7 +591,6 @@ int FullPipe::get_possible_actions(const StateItem & item,
 
 int FullPipe::config_sentence(const dependency_t* input) {
   input_ref= input;
-
   cache.set_ref(input);
   return 0;
 }
@@ -601,6 +600,12 @@ int FullPipe::config_initial_lattice() {
   for (int i = 0; i < input_ref->deprels.size(); ++ i) {
     lattice->deprels[i] = input_ref->deprels[i];
   }
+}
+
+int FullPipeWithGuidance::config_sentence(const dependency_t* input) {
+  input_ref = input;
+  cache.set_ref(input);
+  return 0;
 }
 
 }

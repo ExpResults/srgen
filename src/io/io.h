@@ -1,7 +1,7 @@
 #ifndef __SR_IO_H__
 #define __SR_IO_H__
 
-#include "instance.h"
+#include "types/instance.h"
 
 namespace ZGen {
 

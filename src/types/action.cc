@@ -1,7 +1,7 @@
 #include <iostream>
 
-#include "action.h"
-#include "engine.h"
+#include "types/action.h"
+#include "types/engine.h"
 
 #include <boost/log/trivial.hpp>
 

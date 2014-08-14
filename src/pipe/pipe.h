@@ -1,12 +1,12 @@
 #ifndef __SR_PIPE_H__
 #define __SR_PIPE_H__
 
-#include "action.h"
-#include "state.h"
-#include "settings.h"
-#include "weight.h"
-#include "constraint.h"
-#include "tree.h"
+#include "types/action.h"
+#include "types/state.h"
+#include "types/settings.h"
+#include "types/weight.h"
+#include "types/constraint.h"
+#include "types/tree.h"
 
 namespace ZGen {
 
@@ -24,7 +24,7 @@ public:
   typedef boost::unordered_map<action::action_t, floatval_t>  packed_score_t;
   //
 
-  typedef boost::tuples::tuple<StateItem *, action::action_t, floatval_t> scored_transition_t;
+  typedef boost::tuples::tuple<const StateItem*, action::action_t, floatval_t> scored_transition_t;
   //
 
 public:
@@ -40,7 +40,7 @@ public:
    *  @param[out] output        The output dependency parse
    *  @param[in]  now           The time sequence factor, used in updating parameter.
    */
-  void work(const unordered_dependency_t* input,
+  void work(const dependency_t* input,
             const action_sequence_t & gold_actions,
             dependency_t & output,
             int now);
@@ -83,16 +83,6 @@ protected:
    */
   virtual int config_initial_lattice() = 0;
 
-  // The timestamp for currently processed instance.
-  int timestamp;
-
-  // The reference to the currently processed instance.
-  const dependency_t* input_ref;
-
-  //
-  StateItem * lattice;
-
-private:
   /**
    * Packed the score
    *
@@ -101,7 +91,7 @@ private:
    *  @param[out] score     The packed score
    *
    */
-  int get_state_packed_score(const StateItem & item,
+  virtual int get_state_packed_score(const StateItem & item,
       const action_collection_t & possible_actions,
       packed_score_t & score);
 
@@ -114,9 +104,19 @@ private:
    *  @param[in]  now       The timestamp
    *  @param[in]  scale     The scale for score.
    */
-  int update_state_score(const StateItem & item,
+  virtual int update_state_score(const StateItem & item,
       const action::action_t & act, int now, int scale);
 
+  // The timestamp for currently processed instance.
+  int timestamp;
+
+  // The reference to the currently processed instance.
+  const dependency_t* input_ref;
+
+  //
+  StateItem * lattice;
+
+private:
 
   /**
    * Insert a candidate transition into the array.
@@ -190,8 +190,6 @@ private:
   int max_beam_size;
   //
 
-  //
-
   StateItem * lattice_index[kMaxSteps];
   //
 
@@ -234,7 +232,7 @@ protected:
   int config_sentence(const dependency_t* input);
 
   int config_initial_lattice();
-  
+
   constraint_t constraint;
 };
 
@@ -254,20 +252,10 @@ protected:
    */
   int get_possible_actions(const StateItem & item, action_collection_t & actions);
 
-  /**
-   *
-   *
-   *
-   *
-   */
+  /**/
   int config_sentence(const dependency_t* input);
 
-  /**
-   *
-   *
-   *
-   *
-   */
+  /**/
   int config_initial_lattice();
 };
 
@@ -279,12 +267,7 @@ public:
   ~FullPipe();
 
 protected:
-  /**
-   *
-   *
-   *
-   *
-   */
+  /**/
   int get_possible_actions(const StateItem & item, action_collection_t & actions);
 
   /**
@@ -294,16 +277,24 @@ protected:
    *  @param[in]  input   The input dependency
    *  @param[in]  now     The timestamp
    */
-  int config_sentence(const dependency_t* input);
+  virtual int config_sentence(const dependency_t* input);
 
-  /**
-   *
-   *
-   */
+  /**/
   int config_initial_lattice();
 private:
   DependencyTree cache;
+};
 
+
+// The full pipe with guidance.
+class FullPipeWithGuidance: public FullPipe {
+public:
+  FullPipeWithGuidance(int beam_size);
+  ~FullPipeWithGuidance();
+
+  int config_sentence(const dependency_t* input);
+private:
+  DependencyTreeWithGuidance cache;
 };
 
 }

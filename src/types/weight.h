@@ -1,8 +1,8 @@
 #ifndef __SR_WEIGHT_H__
 #define __SR_WEIGHT_H__
 
-#include "settings.h"
-#include "score_map.h"
+#include "types/settings.h"
+#include "types/score_map.h"
 
 namespace ZGen {
 

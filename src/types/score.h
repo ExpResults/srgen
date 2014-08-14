@@ -1,8 +1,8 @@
 #ifndef __SR_SCORE_H__
 #define __SR_SCORE_H__
 
-#include "action.h"
-#include "settings.h"
+#include "types/settings.h"
+#include "types/action.h"
 
 #include <boost/tuple/tuple.hpp>
 #include <boost/tuple/tuple_comparison.hpp>
@@ -18,7 +18,7 @@ namespace ShiftReduce {
 struct UnigramScore {
   UnigramScore() {}
   
-  UnigramScore(int feat, const action::action_t & act)
+  UnigramScore(int feat, const action::action_t& act)
     : payload(feat, act) {
   }
 
@@ -49,7 +49,7 @@ struct UnigramScore {
 struct BigramScore {
   BigramScore() {}
   
-  BigramScore(int feat1, int feat2, const action::action_t & act)
+  BigramScore(int feat1, int feat2, const action::action_t& act)
     : payload(feat1, feat2, act) {
   }
 
@@ -82,7 +82,7 @@ struct BigramScore {
 struct TrigramScore {
   TrigramScore() {}
 
-  TrigramScore(int feat0, int feat1, int feat2, const action::action_t & act)
+  TrigramScore(int feat0, int feat1, int feat2, const action::action_t& act)
     : payload(feat0, feat1, feat2, act) {
   }
 

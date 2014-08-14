@@ -1,7 +1,7 @@
 #ifndef __SR_PARAM_H__
 #define __SR_PARAM_H__
 
-#include "settings.h"
+#include "types/settings.h"
 
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/archive/text_oarchive.hpp>

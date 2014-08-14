@@ -1,11 +1,11 @@
-#include "io.h"
+#include <boost/regex.hpp>
+#include <boost/algorithm/string.hpp>
+#include <boost/algorithm/string/split.hpp>
 
-#include "boost/regex.hpp"
-#include "boost/algorithm/string.hpp"
-#include "boost/algorithm/string/split.hpp"
-
-#include "settings.h"
-#include "engine.h"
+#include "types/instance.h"
+#include "types/settings.h"
+#include "types/engine.h"
+#include "io/io.h"
 
 namespace ZGen {
 

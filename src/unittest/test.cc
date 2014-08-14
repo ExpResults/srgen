@@ -2,13 +2,13 @@
 #include <fstream>
 #include <bitset>
 
-#include "engine.h"
-#include "score.h"
-#include "param.h"
-#include "weight.h"
-#include "instance.h"
-#include "settings.h"
-#include "utils.h"
+#include "types/engine.h"
+#include "types/score.h"
+#include "types/param.h"
+#include "types/weight.h"
+#include "types/instance.h"
+#include "types/settings.h"
+#include "util/utils.h"
 #include "serialization/unordered_map.h"
 
 #include <boost/unordered_map.hpp>

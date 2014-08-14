@@ -1,4 +1,4 @@
-#include "tree.h"
+#include "types/tree.h"
 
 namespace ZGen {
 
@@ -20,7 +20,7 @@ DependencyTree& DependencyTree::operator = (const DependencyTree& other) {
   std::cerr << "Copy operation is not allowed." << std::endl;
 }
 
-void DependencyTree::set_ref(const dependency_t* _ref) {
+int DependencyTree::set_ref(const dependency_t* _ref) {
   ref = _ref;
   int N = _ref->forms.size();
 
@@ -42,6 +42,8 @@ void DependencyTree::set_ref(const dependency_t* _ref) {
   }
 
   go(root);
+
+  return root;
 }
 
 
@@ -136,7 +138,7 @@ void DependencyTree::go(int now) {
   }
 }
 
-std::ostream & operator << (std::ostream & os, const DependencyTree & tree) {
+std::ostream& operator << (std::ostream & os, const DependencyTree & tree) {
   int N = tree.ref->forms.size();
 
   for (int i = 0; i < N; ++ i) {
@@ -160,6 +162,30 @@ std::ostream & operator << (std::ostream & os, const DependencyTree & tree) {
   }
 
   return os;
+}
+
+void DependencyTreeWithGuidance::reset(int N) {
+  DependencyTree::reset(N);
+
+  memset(lvl0_deprels, 0, sizeof(lvl0_deprels));
+  memset(lvl1_deprels, 0, sizeof(lvl1_deprels));
+  memset(lvl2_deprels, 0, sizeof(lvl2_deprels));
+}
+
+int DependencyTreeWithGuidance::set_ref(const dependency_t* ref) {
+  int root = DependencyTree::set_ref(ref);
+  color(root, 0, 0, 0);
+}
+
+
+void DependencyTreeWithGuidance::color(int now, int _0, int _1, int _2) {
+  for (int i = 0; i < children[now].size(); ++ i) {
+    int child = children[now][i];
+    int new_0 = (_0 ?             _0: ref->deprels[child]);
+    int new_1 = (_1 && _0 ?       _1: ref->deprels[child]);
+    int new_2 = (_2 && _1 && _0 ? _2: ref->deprels[child]);
+    color(child, new_0, new_1, new_2);
+  }
 }
 
 }

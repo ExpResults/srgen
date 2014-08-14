@@ -1,8 +1,6 @@
-#include "pipe.h"
-#include "weight.h"
-#include "context.h"
-
 #include <boost/log/trivial.hpp>
+#include "pipe/pipe.h"
+#include "types/context.h"
 
 // Get Unigram Score (GUS)
 #define __GUS(name) do { \

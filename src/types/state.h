@@ -5,8 +5,8 @@
 #include <bitset>
 #include <cstring>
 
-#include "settings.h"
-#include "action.h"
+#include "types/settings.h"
+#include "types/action.h"
 
 namespace ZGen {
 
