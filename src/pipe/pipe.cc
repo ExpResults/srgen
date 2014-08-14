@@ -342,7 +342,7 @@ void Pipe::work(const dependency_t* input,
 
     if (train_mode) {
       //
-      StateItem * next_correct_state = search_correct_state(
+      const StateItem* next_correct_state = search_correct_state(
           gold_actions[step- 1], correct_state,
           lattice_index[step], lattice_index[step+ 1]);
 
@@ -350,11 +350,9 @@ void Pipe::work(const dependency_t* input,
 
       if (!correct_state_in_beam) {
         BOOST_LOG_TRIVIAL(trace) << "Correct state fallout beam at from #"
-          << step - 1 << " to #" << step;
+          << step- 1 << " to #" << step;
 
-        const StateItem * best_to = search_best_state(lattice_index[step],
-            lattice_index[step+ 1]);
-
+        const StateItem* best_to = search_best_state(lattice_index[step],  lattice_index[step+ 1]);
         transit((*correct_state), gold_actions[step-1], 0, (*lattice_index[step+1]));
 
         // [Update state
@@ -371,7 +369,6 @@ void Pipe::work(const dependency_t* input,
   }
 
   const StateItem * best_to = search_best_state(lattice_index[step- 1], lattice_index[step]);
-
   if (train_mode) {
     if (best_to != correct_state) {
       if (!collect_state_chain_and_update_score(best_to, correct_state, now, 1, -1)) {
@@ -381,34 +378,36 @@ void Pipe::work(const dependency_t* input,
     return;
   }
 
+  // Since the word_sequence store the actual word order, ignoring the phrase settings
+  // and what the output should take the phrases into consideration, 
   std::vector<int> order;
-  for (const StateItem * p = best_to; p->previous; p = p->previous) {
-    if (action::is_shift(p->last_action)) {
-      order.push_back(p->last_action.index);
-    }
+  for (const StateItem* p = best_to; p->previous; p = p->previous) {
+    if (action::is_shift(p->last_action)) { order.push_back(p->last_action.index); }
   }
 
   output.clear();
+
   if (order.size() != N) {
     BOOST_LOG_TRIVIAL(warning) << "#" << now << ": ORDER is not equal to the sent size";
     BOOST_LOG_TRIVIAL(warning) << "order size : " << order.size() << " N : " << N;
-
-    // output.push_back(0, 0, 0, 0, 0, 0);
     return;
   }
 
-  const sentence_t & sentence = input->forms;
   std::reverse(order.begin(), order.end());
+
+  std::vector<int> rank;
+  // collect the rank for each form.
+  rank.resize(N);
+  for (int i = 0; i < N; ++ i) { rank[order[i]] = i; }
+
   for (int i = 0, k = 0; i < N; ++ i) {
     int j = order[i];
     std::vector<word_t> words(input->words.begin() + input->phrases[j].first,
         input->words.begin() + input->phrases[j].second);
 
-    output.push_back(sentence[j],
-        best_to->postags[j],
-        best_to->heads[j],
-        best_to->deprels[j],
-        words,
+    output.push_back(input->forms[j], best_to->postags[j],
+        (best_to->heads[j] == -1 ? -1 : rank[best_to->heads[j]]),
+        best_to->deprels[j], words,
         dependency_t::range_t(k, k + words.size()),
         input->is_phrases[j]);
     k += words.size();
