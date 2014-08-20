@@ -5,7 +5,7 @@ find_package (Boost REQUIRED)
 
 add_definitions (-DBOOST_LOG_DYN_LINK)
 
-set (CMAKE_CXX_FLAGS "-g")
+#set (CMAKE_CXX_FLAGS "-g")
 set (EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 set (SOURCE_DIR             ${PROJECT_SOURCE_DIR}/src)
 
@@ -28,15 +28,13 @@ add_executable (srg
     ${SOURCE_DIR}/pipe/pipe.cc
     ${SOURCE_DIR}/pipe/none.cc
     ${SOURCE_DIR}/pipe/postag.cc
+    ${SOURCE_DIR}/pipe/partial.cc
     ${SOURCE_DIR}/pipe/full.cc
     ${SOURCE_DIR}/pipe/full_with_guidance.cc
-    ${SOURCE_DIR}/zgen/srg.cc)
-
-add_executable (unittest
-    ${SOURCE_DIR}/types/instance.cc
-    ${SOURCE_DIR}/types/engine.cc
-    ${SOURCE_DIR}/util/utils.cc
-    ${SOURCE_DIR}/unittest/test.cc)
+    ${SOURCE_DIR}/zgen/opt.cc
+    ${SOURCE_DIR}/zgen/srg.cc
+    ${SOURCE_DIR}/zgen/builder.cc
+    ${SOURCE_DIR}/zgen/stream.cc)
 
 target_link_libraries (srg
     boost_program_options
@@ -48,6 +46,26 @@ target_link_libraries (srg
     boost_system
     pthread)
 
+
+add_executable (unittest
+    ${SOURCE_DIR}/io/io.cc
+    ${SOURCE_DIR}/types/instance.cc
+    ${SOURCE_DIR}/types/engine.cc
+    ${SOURCE_DIR}/types/tree.cc
+    ${SOURCE_DIR}/util/utils.cc
+    ${SOURCE_DIR}/unittest/test.cc)
+
 target_link_libraries (unittest
     boost_serialization
+    boost_unit_test_framework
+    boost_regex
     pthread)
+
+add_executable (shuffler
+    ${SOURCE_DIR}/types/instance.cc
+    ${SOURCE_DIR}/types/engine.cc
+    ${SOURCE_DIR}/io/io.cc
+    ${SOURCE_DIR}/util/utils.cc
+    ${SOURCE_DIR}/zgen/shuffler.cc)
+
+target_link_libraries (shuffler boost_regex boost_serialization pthread)

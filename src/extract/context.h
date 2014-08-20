@@ -10,14 +10,12 @@
   prefix##w = (item.instance_ref->forms).at(prefix); \
   prefix##p = item.postags[prefix]; \
   prefix##l = item.deprels[prefix]; \
-  /*prefix##k = item.rank[prefix]; */\
 } while (0);
 
 #define __CLEAR_CTX(prefix) do { \
   prefix##w = WordEncoderAndDecoder::NONE; \
   prefix##p = PoSTagEncoderAndDecoder::NONE; \
   prefix##l = DeprelsEncoderAndDecoder::NONE; \
-  /*prefix##k = 0;*/ \
 } while (0);
 
 #define __SET_CNT(prefix) do { \
@@ -45,9 +43,9 @@ const int kNonePoSTag = PoSTagEncoderAndDecoder::NONE;
 struct Context {
   Context(const StateItem & item) {
     int N = item.instance_ref->size();
-    int S0 = item.stack_top();
+    int S0 = item.top0;
 
-    const sentence_t & forms = item.instance_ref->forms;
+    const sentence_t& forms = item.instance_ref->forms;
 
     if (S0 >= 0) {
       _is_begin_state = false;
@@ -59,6 +57,7 @@ struct Context {
       if ( _LEGEAL_RANGE_(item.left_most_child[S0]) ) {
         int S0ld = item.left_most_child[S0];
         __SET_CTX(S0ld);
+        S0S0ldDist = bin(item.rank[S0ld]- item.rank[S0]);
 
         if ( _LEGEAL_RANGE_(item.left_2nd_most_child[S0]) ) {
           int S0l2d = item.left_2nd_most_child[S0];
@@ -77,11 +76,13 @@ struct Context {
         __CLEAR_CTX(S0ld);
         __CLEAR_CTX(S0l2d);
         __CLEAR_CTX(S0ldd);
+        S0S0ldDist = 0;
       }
 
       if ( _LEGEAL_RANGE_(item.right_most_child[S0]) ) {
         int S0rd = item.right_most_child[S0];
         __SET_CTX(S0rd);
+        S0S0rdDist = bin(item.rank[S0rd] - item.rank[S0]);
 
         if ( _LEGEAL_RANGE_(item.right_2nd_most_child[S0]) ) {
           int S0r2d = item.right_2nd_most_child[S0];
@@ -100,6 +101,7 @@ struct Context {
         __CLEAR_CTX(S0rd);
         __CLEAR_CTX(S0r2d);
         __CLEAR_CTX(S0rdd);
+        S0S0rdDist = 0;
       }
     } else {
       // The given state is begin state.
@@ -118,7 +120,7 @@ struct Context {
 
     if (item.stack.size() > 2) {
       _has_S1 = true;
-      int S1 = item.stack[item.stack.size() - 2];
+      int S1 = item.top1;
 
       S1w = forms.at(S1);
       S1p = item.postags[S1];
@@ -128,6 +130,8 @@ struct Context {
       if ( _LEGEAL_RANGE_(item.left_most_child[S1]) ) {
         int S1ld = item.left_most_child[S1];
         __SET_CTX(S1ld);
+        S1S1ldDist = bin(item.rank[S1ld]- item.rank[S1]);
+        
         if ( _LEGEAL_RANGE_(item.left_2nd_most_child[S1]) ) {
           int S1l2d = item.left_2nd_most_child[S1];
           __SET_CTX(S1l2d);
@@ -145,11 +149,13 @@ struct Context {
         __CLEAR_CTX(S1ld);
         __CLEAR_CTX(S1l2d);
         __CLEAR_CTX(S1ldd);
+        S1S1ldDist = 0;
       }
 
       if ( _LEGEAL_RANGE_(item.right_most_child[S1]) ) {
         int S1rd = item.right_most_child[S1];
         __SET_CTX(S1rd);
+        S1S1rdDist = bin(item.rank[S1rd]- item.rank[S1]);
         if ( _LEGEAL_RANGE_(item.right_2nd_most_child[S1]) ) {
           int S1r2d = item.right_2nd_most_child[S1];
           __SET_CTX(S1r2d);
@@ -167,6 +173,7 @@ struct Context {
         __CLEAR_CTX(S1rd);
         __CLEAR_CTX(S1r2d);
         __CLEAR_CTX(S1rdd);
+        S1S1rdDist = 0;
       }
     } else {
       _has_S1 = false;
@@ -230,14 +237,12 @@ struct Context {
   word_t    S0w, S0ldw, S0rdw, S0lddw, S0rddw, S0l2dw, S0r2dw;
   postag_t  S0p, S0ldp, S0rdp, S0lddp, S0rddp, S0l2dp, S0r2dp;
   deprel_t       S0ldl, S0rdl, S0lddl, S0rddl, S0l2dl, S0r2dl;
-  int       S0k, S0ldk, S0rdk, S0lddk, S0rddk, S0l2dk, S0r2dk;
   int       S0la, S0ra;
   int       S0ls, S0rs;
 
   word_t    S1w, S1ldw, S1rdw, S1lddw, S1rddw, S1l2dw, S1r2dw;
   postag_t  S1p, S1ldp, S1rdp, S1lddp, S1rddp, S1l2dp, S1r2dp;
   deprel_t       S1ldl, S1rdl, S1lddl, S1rddl, S1l2dl, S1r2dl;
-  int       S1k, S1ldk, S1rdk, S1lddk, S1rddk, S1l2dk, S1r2dk;
   int       S1la, S1ra;
   int       S1ls, S1rs;
 
@@ -245,6 +250,7 @@ struct Context {
   postag_t  P0, P1, P2;
 
   int       S0S1Dist;
+  int       S0S0ldDist, S0S0rdDist, S1S1ldDist, S1S1rdDist;
 };
 
 }

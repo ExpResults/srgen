@@ -38,10 +38,12 @@ int PoSTagPipe::get_possible_actions(const StateItem & item,
 
 int PoSTagPipe::config_sentence(const dependency_t* input) {
   input_ref = input;
+  return  0;
 }
 
 
 int PoSTagPipe::config_initial_lattice() {
+  return 0;
 }
 
 

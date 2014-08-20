@@ -145,7 +145,6 @@ ActionEncoderAndDecoder::decode(int id) const {
   return ACTION_NAME[id];
 }
 
-
 int
 ActionEncoderAndDecoder::encode(const char * name) const {
   if (EQ("-NONE-"))   { return NONE;  }

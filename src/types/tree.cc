@@ -5,24 +5,20 @@ namespace ZGen {
 namespace ShiftReduce {
 
 DependencyTree::DependencyTree() : ref(0) {
-  //reset();
 }
 
 DependencyTree::~DependencyTree() {
-  std::cerr << "DEPENDENCY-TREE: Should not be dellocate" << std::endl;
-}
-
-DependencyTree::DependencyTree(DependencyTree& o) {
-  std::cerr << "Copy assignment is not allowed." << std::endl;
 }
 
 DependencyTree& DependencyTree::operator = (const DependencyTree& other) {
   std::cerr << "Copy operation is not allowed." << std::endl;
+  return (*this);
 }
 
-int DependencyTree::set_ref(const dependency_t* _ref) {
+
+void DependencyTree::dependency_to_tree(const dependency_t* _ref) {
   ref = _ref;
-  int N = _ref->forms.size();
+  int N = _ref->size();
 
   reset(N);
 
@@ -32,8 +28,13 @@ int DependencyTree::set_ref(const dependency_t* _ref) {
       add_edge(v, i);
     }
   }
+}
+
+int DependencyTree::set_ref(const dependency_t* _ref) {
+  dependency_to_tree(_ref);
 
   int root = -1;
+  int N = _ref->size();
   for (int i = 0; i < N; ++ i) {
     if (indgr[i] == 0) {
       root = i;
@@ -48,14 +49,17 @@ int DependencyTree::set_ref(const dependency_t* _ref) {
 
 
 const DependencyTree::edgeset_t& DependencyTree::descendants(int i) {
-  return descendant[i];
+  return descendants_[i];
 }
 
 
 const DependencyTree::edgeset_t& DependencyTree::siblings(int i) {
-  return sibling[i];
+  return siblings_[i];
 }
 
+const DependencyTree::edgeset_t& DependencyTree::children(int i) {
+  return children_[i];
+}
 
 int DependencyTree::head(int i) {
   return parent[i];
@@ -74,13 +78,13 @@ void DependencyTree::reset(int N) {
 
   for (int i = 0; i < N; ++ i) {
     // Clear chidren cache.
-    children[i].clear();
+    children_[i].clear();
 
     // Clear descendant cache.
-    descendant[i].clear();
+    descendants_[i].clear();
 
     // Clear siblings cache.
-    sibling[i].clear();
+    siblings_[i].clear();
   }
 }
 
@@ -93,21 +97,21 @@ void DependencyTree::add_edge(int u, int v) {
   ++ indgr[v];
 
   //
-  children[u].push_back(v);
+  children_[u].push_back(v);
 }
 
 
 void DependencyTree::go(int now) {
-  for (int i = 0; i < children[now].size(); ++ i) {
-    int child = children[now][i];
+  for (int i = 0; i < children_[now].size(); ++ i) {
+    int child = children_[now][i];
     go(child);
   }
 
-  edgeset_t & tree = descendant[now];
+  edgeset_t& tree = descendants_[now];
 
-  for (int i = 0; i < children[now].size(); ++ i) {
-    int child = children[now][i];
-    const edgeset_t & subtree = descendant[child];
+  for (int i = 0; i < children_[now].size(); ++ i) {
+    int child = children_[now][i];
+    const edgeset_t& subtree = descendants_[child];
 
     // First push the certain children
     tree.push_back(child);
@@ -118,17 +122,17 @@ void DependencyTree::go(int now) {
   }
 
   // Main the siblings.
-  for (int i = 0; i < children[now].size(); ++ i) {
-    int child = children[now][i];
-    edgeset_t & sib = sibling[child];
+  for (int i = 0; i < children_[now].size(); ++ i) {
+    int child = children_[now][i];
+    edgeset_t& sib = siblings_[child];
 
-    for (int j = 0; j < children[now].size(); ++ j) {
-      int child2 = children[now][j];
+    for (int j = 0; j < children_[now].size(); ++ j) {
+      int child2 = children_[now][j];
       if (child == child2) {
         continue;
       }
 
-      const edgeset_t & subtree = descendant[child2];
+      const edgeset_t& subtree = descendants_[child2];
       // Push back the sibling node.
       sib.push_back(child2);
       //
@@ -144,9 +148,9 @@ std::ostream& operator << (std::ostream & os, const DependencyTree & tree) {
   for (int i = 0; i < N; ++ i) {
     os << "id : " << i << std::endl;
 
-    const DependencyTree::edgeset_t & chi = tree.children[i];
-    const DependencyTree::edgeset_t & des = tree.descendant[i];
-    const DependencyTree::edgeset_t & sib = tree.sibling[i];
+    const DependencyTree::edgeset_t & chi = tree.children_[i];
+    const DependencyTree::edgeset_t & des = tree.descendants_[i];
+    const DependencyTree::edgeset_t & sib = tree.siblings_[i];
 
 #define SHOW(fullname, name) os << " - " << #fullname << ": ["; \
     for (int j = 0; j < (name).size(); ++ j) { \
@@ -154,8 +158,8 @@ std::ostream& operator << (std::ostream & os, const DependencyTree & tree) {
     } \
     os << "]" << std::endl;
 
-    SHOW(children, chi);
-    SHOW(descendant, des);
+    SHOW(children,   chi);
+    SHOW(descendants,des);
     SHOW(siblings, sib);
 
 #undef SHOW
@@ -175,15 +179,20 @@ void DependencyTreeWithGuidance::reset(int N) {
 int DependencyTreeWithGuidance::set_ref(const dependency_t* ref) {
   int root = DependencyTree::set_ref(ref);
   color(root, 0, 0, 0);
+  return root;
 }
 
 
 void DependencyTreeWithGuidance::color(int now, int _0, int _1, int _2) {
-  for (int i = 0; i < children[now].size(); ++ i) {
-    int child = children[now][i];
+  //std::cout << now << " " << _0 << " " << _1 << " " << _2 << std::endl;
+  lvl0_deprels[now]= _0;
+  lvl1_deprels[now]= _1;
+  lvl2_deprels[now]= _2;
+  for (int i = 0; i < children_[now].size(); ++ i) {
+    int child = children_[now][i];
     int new_0 = (_0 ?             _0: ref->deprels[child]);
-    int new_1 = (_1 && _0 ?       _1: ref->deprels[child]);
-    int new_2 = (_2 && _1 && _0 ? _2: ref->deprels[child]);
+    int new_1 = (_1 && _0 ?       _1: (_0 ? ref->deprels[child]: 0));
+    int new_2 = (_2 && _1 && _0 ? _2: (_1 ? ref->deprels[child]: 0));
     color(child, new_0, new_1, new_2);
   }
 }
@@ -200,6 +209,38 @@ int DependencyTreeWithGuidance::lvl2(int i) const {
   return lvl2_deprels[i];
 }
 
+int DependencyForest::set_ref(const dependency_t* ref) {
+  dependency_to_tree(ref);
+
+  int N = ref->size();
+
+  for (int i = 0; i < N; ++ i) {
+    if (indgr[i] == 0) {
+      go(i);
+      rootize(i, i);
+    }
+  }
+  return -1;
 }
 
+void DependencyForest::rootize(int now, int root_flag) {
+  root_[now] = root_flag;
+  const edgeset_t& cc = children_[now];
+  for (int i = 0; i < cc.size(); ++ i) {
+    int c = cc[i];
+    rootize(c, root_flag);
+  }
 }
+
+
+int DependencyForest::root(int i) {
+  return root_[i];
+}
+
+bool DependencyForest::is_root(int i) {
+  return (root_[i] == i);
+}
+
+} //  end for namespace ShiftReduce
+
+} //  end for namespace ZGen

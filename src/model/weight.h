@@ -3,67 +3,47 @@
 
 #include "types/settings.h"
 #include "types/score_map.h"
+#include "model/shortcut.h"
 
 namespace ZGen {
 
 namespace ShiftReduce {
 
 struct BasicWeight {
-  us_map_t    S0w,      S0p;
-  us_map_t    S0ldw,    S0ldp,    S0ldl;
-  us_map_t    S0lddw,   S0lddp,   S0lddl;
-  us_map_t    S0l2dw,   S0l2dp,   S0l2dl;
-  us_map_t    S0rdw,    S0rdp,    S0rdl;
-  us_map_t    S0rddw,   S0rddp,   S0rddl;
-  us_map_t    S0r2dw,   S0r2dp,   S0r2dl;
+  __STATE_U_EXT(S0);                                  //1 - S0 unigram
+  __STATE_B_MATRIX_2_3(S0w, S0p, S0ldw, S0ldp, S0ldl);//2 - S0 modifiers' bigram
+  __STATE_B_MATRIX_2_3(S0w, S0p, S0rdw, S0rdp, S0rdl);//|
+  __STATE_T_MATRIX_2_2_1(S0w, S0p, S0ldw, S0ldp, S0S0ldDist);
+  __STATE_T_MATRIX_2_2_1(S0w, S0p, S0rdw, S0rdp, S0S0rdDist);
+  __STATE_T_CIRCLE_4(S0w, S0p, S0ldw, S0ldp);         //3 - S0 modifiers' trigram
+  __STATE_T_CIRCLE_4(S0w, S0p, S0rdw, S0rdp);         //|
+  __STATE_B_MATRIX_2_2(S0w, S0p, S0la, S0ra);         //4 - S0 modifiers' count
+  __STATE_B_MATRIX_2_2(S0w, S0p, S0ls, S0rs);         //|
+  __STATE_B_EXT(S0ld, S0l2d);                         //5 - S0 modifiers' dependency order
+  __STATE_U_EXT(S1);                                  //6 - S1 unigram
+  __STATE_B_MATRIX_2_3(S1w, S1p, S1ldw, S1ldp, S1ldl);//7 - S1 modifiers' bigram
+  __STATE_B_MATRIX_2_3(S1w, S1p, S1rdw, S1rdp, S1rdl);//|
+  __STATE_T_MATRIX_2_2_1(S1w, S1p, S1ldw, S1ldp, S1S1ldDist);
+  __STATE_T_MATRIX_2_2_1(S1w, S1p, S1rdw, S1rdp, S1S1rdDist);
+  __STATE_T_CIRCLE_4(S1w, S1p, S1ldw, S1ldp);         //8 - S1 modifiers' trigram
+  __STATE_T_CIRCLE_4(S1w, S1p, S1rdw, S1rdp);         //|
+  __STATE_B_MATRIX_2_2(S1w, S1p, S1la, S1ra);         //9 - S1 modifiers' count
+  __STATE_B_MATRIX_2_2(S1w, S1p, S1ls, S1rs);         //|
+  __STATE_B_EXT(S1r2d, S1rd);                         //10 - S1 modifiers' dependency order
+  __STATE_B_MATRIX_2_2(S0w, S0p, S1w, S1p);           //11 - S0, S1's bigram
+  __STATE_T_CIRCLE_4(S0w, S0p, S1w, S1p);             //12 - S0, S1's trigram
+  __STATE_T_MATRIX_2_2_1(S0w, S0p, S1w, S1p,S0S1Dist);//13 - S0, S1, distance trigram
 
-  // bs_map_t    S0r2dwS0rdw, S0r2dpS0rdp, S0r2dlS0rdl;
-  bs_map_t    S0ldwS0l2dw, S0ldpS0l2dp, S0ldlS0l2dl;
-
-  bs_map_t    S0wS0la,  S0pS0la;
-  bs_map_t    S0wS0ra,  S0pS0ra;
-  bs_map_t    S0wS0ls,  S0pS0ls;
-  bs_map_t    S0wS0rs,  S0pS0rs;
-
-  bs_map_t    S0wS0ldw, S0wS0ldp, S0pS0ldw, S0pS0ldp;
-  bs_map_t    S0wS0rdw, S0wS0rdp, S0pS0rdw, S0pS0rdp;
-  ts_map_t    S0wS0pS0ldw, S0wS0pS0ldp, S0wS0ldwS0ldp, S0pS0ldwS0ldp;
-  ts_map_t    S0wS0pS0rdw, S0wS0pS0rdp, S0wS0rdwS0rdp, S0pS0rdwS0rdp;
-
-  us_map_t    S1w,      S1p;
-  us_map_t    S1ldw,    S1ldp,    S1ldl;
-  us_map_t    S1lddw,   S1lddp,   S1lddl;
-  us_map_t    S1l2dw,   S1l2dp,   S1l2dl;
-  us_map_t    S1rdw,    S1rdp,    S1rdl;
-  us_map_t    S1rddw,   S1rddp,   S1rddl;
-  us_map_t    S1r2dw,   S1r2dp,   S1r2dl;
-
-  bs_map_t    S1wS1la,  S1pS1la;
-  bs_map_t    S1wS1ra,  S1pS1ra;
-  bs_map_t    S1wS1ls,  S1pS1ls;
-  bs_map_t    S1wS1rs,  S1pS1rs;
-
-  bs_map_t    S1wS1ldw, S1wS1ldp, S1pS1ldw, S1pS1ldp;
-  bs_map_t    S1wS1rdw, S1wS1rdp, S1pS1rdw, S1pS1rdp;
-  ts_map_t    S1wS1pS1ldw, S1wS1pS1ldp, S1wS1ldwS1ldp, S1pS1ldwS1ldp;
-  ts_map_t    S1wS1pS1rdw, S1wS1pS1rdp, S1wS1rdwS1rdp, S1pS1rdwS1rdp;
-
-  bs_map_t    S1r2dwS1rdw, S1r2dpS1rdp, S1r2dlS1rdl;
-
-  bs_map_t    S0wS1w,   S0pS1p;
-  bs_map_t    S0wS1p,   S0pS1w;
-  ts_map_t    S0wS0pS1w, S0wS0pS1p, S0wS1wS1p, S0pS1wS1p;
-
-  ts_map_t    S0wS1wS0S1Dist, S0pS1pS0S1Dist;
-  ts_map_t    S0wS1pS0S1Dist, S0pS1wS0S1Dist;
-
+  // Linearization feature
   us_map_t    W0, P0;
   bs_map_t    W0W1, P0P1;
   ts_map_t    W0W1W2, P0P1P2;
 
+  // High level guidance feature.
   us_map_t    S0lvl0, S0lvl1, S0lvl2;
   us_map_t    S1lvl0, S1lvl1, S1lvl2;
 
+  //
   bool flush_weight(int now);
 
   //
@@ -94,12 +74,14 @@ floatval_t get_score(const Mapped & mapped, const Entry & entry,
   }
 }
 
+
 template<typename Mapped, typename Entry>
 void update_score(Mapped & mapped, const Entry & entry,
     int now, floatval_t scale = 1.) {
   param_t & param = mapped[entry];
   param.add(now, scale);
 }
+
 
 template<typename Mapped, typename Entry>
 void flush_score(Mapped & mapped, const Entry & entry, int now) {

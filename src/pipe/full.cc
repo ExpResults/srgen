@@ -48,7 +48,7 @@ int FullPipe::get_possible_actions(const StateItem & item,
         }
       }
     } else {
-      int top1 = (item.stack.size() > 2 ? item.stack[item.stack.size() - 2]: -1);
+      int top1 = item.top1;
 
       if (top1 >= 0 && tree.arc(top0, top1)) {
         deprel_t deprel = input_ref->deprels[top1];
@@ -93,6 +93,7 @@ int FullPipe::config_initial_lattice() {
   for (int i = 0; i < input_ref->deprels.size(); ++ i) {
     lattice->deprels[i] = input_ref->deprels[i];
   }
+  return 0;
 }
 
 

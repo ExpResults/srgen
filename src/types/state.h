@@ -54,11 +54,12 @@ public:
 
   friend std::ostream & operator << (std::ostream & os, const StateItem & item);
 
-  // access
-  int stack_top() const;
-
 public:
   int N;  // The total number of word for thesentence.
+
+  int top0;  //  The top word in the stack of the current state
+
+  int top1; //  The second top word.
 
   const dependency_t * instance_ref;
   // The reference to the sentence

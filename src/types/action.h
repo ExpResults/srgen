@@ -4,12 +4,11 @@
 #include <iostream>
 #include "types/instance.h"
 #include "types/settings.h"
-
 #include <boost/tuple/tuple.hpp>
 #include <boost/functional/hash.hpp>
-
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/archive/text_oarchive.hpp>
+#include <boost/serialization/singleton.hpp>
 
 namespace ZGen {
 
@@ -166,7 +165,7 @@ int get_correct_actions_travel(int root,
     const dependency_t & parse,
     const std::vector<std::vector<int> > & tree,
     std::vector<action_t> & actions);
-}
+} //  end for namespace action
 
 }
 

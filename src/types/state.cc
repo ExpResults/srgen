@@ -30,15 +30,6 @@ bool StateItem::operator > (const StateItem& other) const {
   return score > other.score;
 }
 
-
-int StateItem::stack_top() const {
-  if (stack.size() < 1) {
-    return -1;
-  }
-  return stack.back();
-}
-
-
 void StateItem::set_instance_reference(const dependency_t* ref) {
   instance_ref = ref;
   N = ref->size();
@@ -49,6 +40,9 @@ void StateItem::clear() {
   score = 0;
 
   previous = 0;
+
+  top0 = -1;
+  top1 = -1;
 
   // left_arced.reset();
 
@@ -109,6 +103,8 @@ void StateItem::copy(const StateItem & other) {
 
   instance_ref = other.instance_ref;
 
+  top0 = other.top0; top1 = other.top1;
+
   previous = other.previous;
 
   stack = other.stack;
@@ -153,6 +149,8 @@ bool StateItem::shift(postag_t label, word_t word, int index) {
 
   // Push the word onto the stack
   stack.push_back(index);
+  top1 = top0;
+  top0 = index;
 
   //std::cout << (*instance_ref) << std::endl;
 
@@ -201,8 +199,8 @@ bool StateItem::left_arc(deprel_t deprel) {
 
   // Backup the stack top nodes
   int stack_size = stack.size();
-  int top0 = stack[stack_size - 1];
-  int top1 = stack[stack_size - 2];
+  top0 = stack[stack_size - 1];
+  top1 = stack[stack_size - 2];
 
   // Maintain the stack structure
   stack.pop_back();
@@ -234,6 +232,13 @@ bool StateItem::left_arc(deprel_t deprel) {
   nr_left_descendant[top0] += (nr_left_descendant[top1]
       + nr_right_descendant[top1]
       + (instance_ref->phrases[top1].second - instance_ref->phrases[top1].first));
+
+  if (stack.size() <= 1) {
+    top1 = -1;
+  } else {
+    top1 = stack[stack.size() - 2];
+  }
+
   return true;
 }
 
@@ -259,8 +264,9 @@ bool StateItem::right_arc(deprel_t deprel) {
 
   //
   int stack_size = stack.size();
-  int top0 = stack[stack_size - 1];
-  int top1 = stack[stack_size - 2];
+
+  top0 = stack[stack_size - 1];
+  top1 = stack[stack_size - 2];
 
   // Maintain the stack structure
   stack.pop_back();
@@ -285,6 +291,14 @@ bool StateItem::right_arc(deprel_t deprel) {
   nr_right_descendant[top1] += (nr_right_descendant[top0] 
       + nr_left_descendant[top0]
       + (instance_ref->phrases[top0].second - instance_ref->phrases[top0].first));
+
+  top0 = top1;
+  if (stack.size() <= 1) {
+    top1 = -1;
+  } else {
+    top1 = stack[stack.size() - 2];
+  }
+
   return true;
 }
 

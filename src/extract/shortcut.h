@@ -1,6 +1,9 @@
 #ifndef __SR_EXTRACE_SHORTCUT_H__
 #define __SR_EXTRACE_SHORTCUT_H__
 
+#include "model/appendix.h"
+#include "util/arguments_product.h"
+
 // Get Unigram Score (GUS)
 #define __GUS(name) do { \
   if (ctx.name) { \
@@ -44,7 +47,6 @@
   } \
 } while (0);
 
-
 #define __NC_GUS(name) do { \
   if (name) { \
     scores[act] += get_score<us_map_t, us_t>(weight.name, \
@@ -58,6 +60,44 @@
         us_t(name, act), now, scale); \
   } \
 } while (0);
+
+#define __GUS_EXT(name) __APPENDIX_U(__GUS, name)
+
+#define __GBS_EXT(name1, name2) __APPENDIX_B(__GBS, name1, name2)
+
+#define __GBS_MATRIX_2_2(name1, name2, name3, name4) \
+  __BATCH_FUNCTION_2_MATRIX_2_2(__GBS, name1, name2, name3, name4)
+
+#define __GBS_MATRIX_2_3(name1, name2, name3, name4, name5) \
+  __BATCH_FUNCTION_2_MATRIX_2_3(__GBS, name1, name2, name3, name4, name5)
+
+#define __GBS_MATRIX_3_3(name1, name2, name3, name4, name5, name6) \
+  __BATCH_FUNCTION_2_MATRIX_3_3(__GBS, name1, name2, name3, name4, name5, name6)
+
+#define __GTS_MATRIX_2_2_1(name1, name2, name3, name4, name5) \
+  __BATCH_FUNCTION_3_MATRIX_2_2_1(__GTS, name1, name2, name3, name4, name5)
+
+#define __GTS_CIRCLE_4(name1, name2, name3, name4) \
+  __BATCH_FUNCTION_3_CIRCLE_4(__GTS, name1, name2, name3, name4)
+
+#define __UUS_EXT(name) __APPENDIX_U(__UUS, name)
+
+#define __UBS_EXT(name1, name2) __APPENDIX_B(__UBS, name1, name2)
+
+#define __UBS_MATRIX_2_2(name1, name2, name3, name4) \
+  __BATCH_FUNCTION_2_MATRIX_2_2(__UBS, name1, name2, name3, name4)
+
+#define __UBS_MATRIX_2_3(name1, name2, name3, name4, name5) \
+  __BATCH_FUNCTION_2_MATRIX_2_3(__UBS, name1, name2, name3, name4, name5)
+
+#define __UBS_MATRIX_3_3(name1, name2, name3, name4, name5, name6) \
+  __BATCH_FUNCTION_2_MATRIX_3_3(__UBS, name1, name2, name3, name4, name5, name6)
+
+#define __UTS_MATRIX_2_2_1(name1, name2, name3, name4, name5) \
+  __BATCH_FUNCTION_3_MATRIX_2_2_1(__UTS, name1, name2, name3, name4, name5)
+
+#define __UTS_CIRCLE_4(name1, name2, name3, name4) \
+  __BATCH_FUNCTION_3_CIRCLE_4(__UTS, name1, name2, name3, name4)
 
 
 #endif  //  end for __SR_EXTRACE_SHORTCUT_H__

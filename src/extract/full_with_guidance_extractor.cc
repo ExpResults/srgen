@@ -21,12 +21,12 @@ int FullWithGuidancePipe::get_state_packed_score(const StateItem& item,
   __INIT_LVL(S0);
   __INIT_LVL(S1);
 
-  int S0 = item.stack_top();
+  int S0 = item.top0;
   if (S0 >= 0) {
     __SET_LVL(S0);
   }
 
-  int S1 = item.stack.size() > 2 ? item.stack[item.stack.size()- 2] : -1;
+  int S1 = item.top1;
   if (S1 >= 0) {
     __SET_LVL(S1);
   }
@@ -34,7 +34,7 @@ int FullWithGuidancePipe::get_state_packed_score(const StateItem& item,
   for (int i = 0; i < possible_actions.size(); ++ i) {
     const action::action_t& act = possible_actions[i];
     __NC_GUS(S0lvl0); __NC_GUS(S0lvl1); __NC_GUS(S0lvl2);
-    __NC_GUS(S1lvl1); __NC_GUS(S1lvl1); __NC_GUS(S1lvl2);
+    __NC_GUS(S1lvl0); __NC_GUS(S1lvl1); __NC_GUS(S1lvl2);
   }
 
   return 0;
@@ -47,12 +47,12 @@ int FullWithGuidancePipe::update_state_score(const StateItem& item,
   __INIT_LVL(S0);
   __INIT_LVL(S1);
 
-  int S0 = item.stack_top();
+  int S0 = item.top0;
   if (S0 >= 0) {
     __SET_LVL(S0);
   }
 
-  int S1 = item.stack.size() > 2 ? item.stack[item.stack.size()- 2] : -1;
+  int S1 = item.top1;
   if (S1 >= 0) {
     __SET_LVL(S1);
   }

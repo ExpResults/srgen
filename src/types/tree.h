@@ -27,12 +27,19 @@ public:
   //
   friend std::ostream & operator << (std::ostream & ofs, const DependencyTree & tree);
 
+  /**/
   const edgeset_t& siblings(int i);
 
+  /**/
   const edgeset_t& descendants(int i);
 
+  /**/
+  const edgeset_t& children(int i);
+
+  /**/
   int head(int i);
 
+  /**/
   bool arc(int from, int to);
 
 protected:
@@ -42,16 +49,7 @@ protected:
   virtual void reset(int N = kMaxNumberOfWords);
 
   //
-  const dependency_t * ref;
-
-  // Record the children for each node.
-  edgeset_t children[kMaxNumberOfWords];
-
-private:
-  DependencyTree(DependencyTree & other);
-
-  DependencyTree& operator = (const DependencyTree & other);
-
+  void dependency_to_tree(const dependency_t* parse);
 
   /**
    * The deap first process.
@@ -60,6 +58,28 @@ private:
    */
   void go(int now);
 
+  //
+  const dependency_t * ref;
+
+  // Record the children for each node.
+  edgeset_t children_[kMaxNumberOfWords];
+
+  int parent[kMaxNumberOfWords];
+
+  // Record the in degree of the graph.
+  int indgr[kMaxNumberOfWords];
+
+  // Record the descendant for each node.
+  edgeset_t descendants_[kMaxNumberOfWords];
+
+  // Record the siblings for each node.
+  edgeset_t siblings_[kMaxNumberOfWords];
+
+private:
+  DependencyTree(DependencyTree & other);
+
+  // ban the reference assign
+  DependencyTree& operator = (const DependencyTree & other);
 
   /**
    * Add edge from `u` to `v`
@@ -68,17 +88,6 @@ private:
    *  @param[in]  v   The in link node.
    */
   void add_edge(int u, int v);
-
-  int parent[kMaxNumberOfWords];
-
-  // Record the in degree of the graph.
-  int indgr[kMaxNumberOfWords];
-
-  // Record the descendant for each node.
-  edgeset_t descendant[kMaxNumberOfWords];
-
-  // Record the siblings for each node.
-  edgeset_t sibling[kMaxNumberOfWords];
 };
 
 
@@ -105,6 +114,22 @@ private:
   int lvl1_deprels[kMaxNumberOfWords];
   int lvl2_deprels[kMaxNumberOfWords];
 };
+
+//
+class DependencyForest : public DependencyTree {
+public:
+  /**/
+  int set_ref(const dependency_t* ref);
+
+  int root(int i);
+
+  bool is_root(int i);
+private:
+  void rootize(int now, int root);
+
+  int root_[kMaxNumberOfWords];
+};
+
 
 }
 

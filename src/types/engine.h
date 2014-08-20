@@ -61,24 +61,6 @@ public:
 };
 
 
-// Use to encode action prefix name into integer and decode integer
-// into action prefix name.
-class ActionEncoderAndDecoder {
-public:
-  ActionEncoderAndDecoder() {}
-
-  const char * decode(int id) const;
-  int encode(const char * name) const;
-
-  static const char * ACTION_NAME[];
-
-  enum ACTION_ID {
-    NONE = 0, LA, RA, SH, kMaxIndexOfAction
-  };
-};
-
-
-
 // Provide an equal function for character array.
 typedef struct CharArrayEqualFunc {
   bool operator() (const char * s1, const char * s2) const {
@@ -101,6 +83,22 @@ typedef struct CharArrayHashFunc {
     return (strcmp(s1, s2) < 0);
   }
 } char_array_hash;
+
+// Use to encode action prefix name into integer and decode integer
+// into action prefix name.
+class ActionEncoderAndDecoder {
+public:
+  ActionEncoderAndDecoder() {}
+
+  const char * decode(int id) const;
+  int encode(const char * name) const;
+
+  static const char * ACTION_NAME[];
+
+  enum ACTION_ID {
+    NONE = 0, LA, RA, SH, kMaxIndexOfAction
+  };
+};
 
 
 // Use to encode word into integer and decode integer into
@@ -149,8 +147,8 @@ private:
 
 typedef boost::serialization::singleton<PoSTagEncoderAndDecoder>  PoSTagEngine;
 typedef boost::serialization::singleton<DeprelsEncoderAndDecoder> DeprelEngine;
-typedef boost::serialization::singleton<ActionEncoderAndDecoder>  ActionEngine;
 typedef boost::serialization::singleton<WordEncoderAndDecoder>    WordEngine;
+typedef boost::serialization::singleton<ActionEncoderAndDecoder>  ActionEngine;
 
 /**
  * Save the word engine into file.

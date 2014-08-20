@@ -83,7 +83,7 @@ int get_correct_actions_travel(int root,
   return 0;
 }
 
-}
+} //  end for namespace action
 
 }
 

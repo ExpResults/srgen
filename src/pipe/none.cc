@@ -53,10 +53,12 @@ int NonePipe::get_possible_actions(const StateItem & item,
 
 int NonePipe::config_sentence(const dependency_t* input) {
   input_ref = input;
+  return 0;
 }
 
 
 int NonePipe::config_initial_lattice() {
+  return 0;
 }
 
 }   //  end for namespace ShiftReduce
