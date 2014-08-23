@@ -64,10 +64,10 @@ protected:
   // Record the children for each node.
   edgeset_t children_[kMaxNumberOfWords];
 
-  int parent[kMaxNumberOfWords];
+  int parent_[kMaxNumberOfWords];
 
   // Record the in degree of the graph.
-  int indgr[kMaxNumberOfWords];
+  int indgr_[kMaxNumberOfWords];
 
   // Record the descendant for each node.
   edgeset_t descendants_[kMaxNumberOfWords];
@@ -121,13 +121,32 @@ public:
   /**/
   int set_ref(const dependency_t* ref);
 
-  int root(int i);
+  /**/
+  int root(int i) const;
 
-  bool is_root(int i);
+  /**/
+  int depth(int i) const;
+
+  /**/
+  int lca(int u, int v) const;
+
+  /**/
+  bool is_root(int i) const;
+
+  /**/
+  bool same_ancestor(int u, int v) const;
+
+  //
+  friend std::ostream & operator << (std::ostream & ofs, const DependencyForest& tree);
+protected:
+  void reset(int N = kMaxNumberOfWords);
+
 private:
-  void rootize(int now, int root);
+  void rootize(int now, int root, int depth);
 
   int root_[kMaxNumberOfWords];
+  int depth_[kMaxNumberOfWords];
+  int lca_[kMaxNumberOfWords][kMaxNumberOfWords];
 };
 
 

@@ -11,6 +11,7 @@ namespace ShiftReduce {
 class NonePipe: public Pipe {
 public:
   NonePipe(const char * postag_dict_path,
+      bool output_label,
       int beam_size);
 
 protected:
@@ -34,6 +35,8 @@ protected:
   int config_initial_lattice();
 
   constraint_t constraint;
+
+  bool labeled;
 };
 
 } //  end for namespace ShiftReduce

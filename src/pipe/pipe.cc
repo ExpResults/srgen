@@ -273,6 +273,7 @@ void Pipe::work(const dependency_t* input,
   } else {
     BOOST_LOG_TRIVIAL(trace) << "TEST MODE activated.";
   }
+  BOOST_LOG_TRIVIAL(trace)  << (*input);
 
   // BOOST_LOG_TRIVIAL(debug) << N;
   int steps = (N << 1) - 1;
@@ -320,10 +321,9 @@ void Pipe::work(const dependency_t* input,
     }
 
     // Apply transition.
-    BOOST_LOG_TRIVIAL(trace) << "||||| APPLYING TRANSITION";
     for (int i = 0; i < current_beam_size; ++ i) {
       const scored_transition_t & trans = candidate_transitions[i];
-      BOOST_LOG_TRIVIAL(trace) << (void *)trans.get<0>()
+      BOOST_LOG_TRIVIAL(trace) << "PIPE Trans: " << (void *)trans.get<0>()
         << " to " << (void *)(lattice_index[step] + i)
         << ": " << trans.get<1>()
         << ", " << trans.get<2>();
@@ -388,8 +388,8 @@ void Pipe::work(const dependency_t* input,
   output.clear();
 
   if (order.size() != N) {
-    BOOST_LOG_TRIVIAL(warning) << "#" << now << ": ORDER is not equal to the sent size";
-    BOOST_LOG_TRIVIAL(warning) << "order size : " << order.size() << " N : " << N;
+    BOOST_LOG_TRIVIAL(warning) << "#" << now << ": ORDER is not equal to the sent size "
+      << "order: " << order.size() << " N: " << N;
     return;
   }
 

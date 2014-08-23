@@ -59,8 +59,6 @@ bool parse_config(boost::program_options::variables_map& vm,
   } else {
     if (vm["type"].as<std::string>() == "none") {
       opts.input_type = option_t::NONE;
-    } else if (vm["type"].as<std::string>() == "postag") {
-      opts.input_type = option_t::POSTAG;
     } else if (vm["type"].as<std::string>() == "partial") {
       opts.input_type = option_t::PARTIAL;
     } else if (vm["type"].as<std::string>() == "full") {
@@ -101,9 +99,9 @@ bool parse_config(boost::program_options::variables_map& vm,
   }
 
   if (!vm.count("unlabeled")) {
-    opts.output_label = false;
-  } else {
     opts.output_label = true;
+  } else {
+    opts.output_label = false;
   }
 
   // [Parse beam size

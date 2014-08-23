@@ -100,12 +100,12 @@ int main(int argc, char * argv[]) {
     }
     SR::read_from_dep(rfs, refer);
     BOOST_LOG_TRIVIAL(info) << "SRG: [" << refer.size() << "] reference are loaded.";
-  }
 
-  if (data.size() != refer.size()) {
-    BOOST_LOG_TRIVIAL(error) << "SRG: input size ("  << data.size()
-      << ") not equal to reference size(" << refer.size();
-    return 1;
+    if (data.size() != refer.size()) {
+      BOOST_LOG_TRIVIAL(error) << "SRG: input size ("  << data.size()
+        << ") not equal to reference size(" << refer.size() << ")";
+      return 1;
+    }
   }
 
   std::ostream* os = get_output_stream(opts, train_mode);

@@ -7,7 +7,7 @@
 
 //
 struct Option {
-  enum { NONE, POSTAG, PARTIAL, FULL, FULL_WITH_GUIDANCE};
+  enum { NONE, PARTIAL, FULL, FULL_WITH_GUIDANCE};
 
   // [The input type
   int input_type;

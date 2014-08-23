@@ -1,6 +1,6 @@
 #include "zgen/builder.h"
 #include "pipe/none.h"
-#include "pipe/postag.h"
+#include "pipe/partial.h"
 #include "pipe/full.h"
 #include "pipe/full_with_guidance.h"
 #include <boost/log/trivial.hpp>
@@ -10,13 +10,16 @@ SR::Pipe* build_pipe(const option_t& opts) {
  
   switch (opts.input_type) {
     case option_t::NONE:
-      pipe = new SR::NonePipe(opts.postag_dict_path.c_str(), opts.beam_size);
-      break;
-    case option_t::POSTAG:
-      pipe = new SR::PoSTagPipe(opts.beam_size);
+      pipe = new SR::NonePipe(
+          opts.postag_dict_path.c_str(),
+          opts.output_label,
+          opts.beam_size);
       break;
     case option_t::PARTIAL:
-      // pipe = new SR::PartialPipe(opts.beam_size);
+      pipe = new SR::PartialPipe(
+          opts.postag_dict_path.c_str(),
+          opts.output_label,
+          opts.beam_size);
       break;
     case option_t::FULL:
       pipe = new SR::FullPipe(opts.beam_size);

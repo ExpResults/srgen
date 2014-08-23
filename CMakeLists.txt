@@ -5,7 +5,7 @@ find_package (Boost REQUIRED)
 
 add_definitions (-DBOOST_LOG_DYN_LINK)
 
-#set (CMAKE_CXX_FLAGS "-g")
+set (CMAKE_CXX_FLAGS "-g")
 set (EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 set (SOURCE_DIR             ${PROJECT_SOURCE_DIR}/src)
 
@@ -27,7 +27,6 @@ add_executable (srg
     ${SOURCE_DIR}/io/io.cc
     ${SOURCE_DIR}/pipe/pipe.cc
     ${SOURCE_DIR}/pipe/none.cc
-    ${SOURCE_DIR}/pipe/postag.cc
     ${SOURCE_DIR}/pipe/partial.cc
     ${SOURCE_DIR}/pipe/full.cc
     ${SOURCE_DIR}/pipe/full_with_guidance.cc
