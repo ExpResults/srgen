@@ -23,13 +23,14 @@ add_executable (srg
     ${SOURCE_DIR}/model/weight.cc
     ${SOURCE_DIR}/util/utils.cc
     ${SOURCE_DIR}/extract/extractor.cc
-    ${SOURCE_DIR}/extract/full_with_guidance_extractor.cc
+    ${SOURCE_DIR}/extract/full_with_guidance_feature_extractor.cc
     ${SOURCE_DIR}/io/io.cc
     ${SOURCE_DIR}/pipe/pipe.cc
     ${SOURCE_DIR}/pipe/none.cc
     ${SOURCE_DIR}/pipe/partial.cc
     ${SOURCE_DIR}/pipe/full.cc
-    ${SOURCE_DIR}/pipe/full_with_guidance.cc
+    ${SOURCE_DIR}/pipe/full_with_guidance_feature.cc
+    ${SOURCE_DIR}/pipe/full_with_topdown_constrain.cc
     ${SOURCE_DIR}/zgen/opt.cc
     ${SOURCE_DIR}/zgen/srg.cc
     ${SOURCE_DIR}/zgen/builder.cc

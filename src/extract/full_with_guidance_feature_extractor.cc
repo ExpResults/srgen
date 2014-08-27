@@ -1,4 +1,4 @@
-#include "pipe/full_with_guidance.h"
+#include "pipe/full_with_guidance_feature.h"
 #include "extract/shortcut.h"
 
 #define __INIT_LVL(prefix) int prefix##lvl0 = 0, prefix##lvl1 = 0, prefix##lvl2 = 0;
@@ -13,7 +13,7 @@ namespace ZGen {
 
 namespace ShiftReduce {
 
-int FullWithGuidancePipe::get_state_packed_score(const StateItem& item,
+int FullWithGuidanceFeaturePipe::get_state_packed_score(const StateItem& item,
     const action_sequence_t& possible_actions,
     packed_score_t& scores) {
   Pipe::get_state_packed_score(item, possible_actions, scores);
@@ -40,7 +40,7 @@ int FullWithGuidancePipe::get_state_packed_score(const StateItem& item,
   return 0;
 }
 
-int FullWithGuidancePipe::update_state_score(const StateItem& item,
+int FullWithGuidanceFeaturePipe::update_state_score(const StateItem& item,
     const action::action_t& act, int now, int scale) {
   Pipe::update_state_score(item, act, now, scale);
 

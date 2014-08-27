@@ -2,7 +2,7 @@
 #include "pipe/none.h"
 #include "pipe/partial.h"
 #include "pipe/full.h"
-#include "pipe/full_with_guidance.h"
+#include "pipe/full_with_guidance_feature.h"
 #include <boost/log/trivial.hpp>
 
 SR::Pipe* build_pipe(const option_t& opts) {
@@ -28,7 +28,7 @@ SR::Pipe* build_pipe(const option_t& opts) {
           opts.beam_size);
       break;
     case option_t::FULL_WITH_GUIDANCE:
-      pipe = new SR::FullWithGuidancePipe(opts.beam_size);
+      pipe = new SR::FullWithGuidanceFeaturePipe(opts.beam_size);
       break;
     default:
       return NULL;

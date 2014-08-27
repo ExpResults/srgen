@@ -1,5 +1,5 @@
-#ifndef __SR_FULL_PIPE_WITH_GUIDANCE_H__
-#define __SR_FULL_PIPE_WITH_GUIDANCE_H__
+#ifndef __SR_FULL_PIPE_WITH_GUIDANCE_FEATURE_H__
+#define __SR_FULL_PIPE_WITH_GUIDANCE_FEATURE_H__
 
 #include "pipe/full.h"
 
@@ -8,13 +8,13 @@ namespace ZGen {
 namespace ShiftReduce {
 
 // The full pipe with guidance.
-class FullWithGuidancePipe: public FullPipe {
+class FullWithGuidanceFeaturePipe: public FullPipe {
 public:
   //
-  FullWithGuidancePipe(int beam_size);
+  FullWithGuidanceFeaturePipe(int beam_size);
 
   //
-  ~FullWithGuidancePipe();
+  ~FullWithGuidanceFeaturePipe();
 
   int config_sentence(const dependency_t* input);
 
@@ -35,4 +35,4 @@ private:
 
 }
 
-#endif  //  end for __SR_FULL_PIPE_WITH_GUIDANCE_H__
+#endif  //  end for __SR_FULL_PIPE_WITH_GUIDANCE_FEATURE_H__

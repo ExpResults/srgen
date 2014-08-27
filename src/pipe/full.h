@@ -17,7 +17,7 @@ public:
 
 protected:
   /**/
-  int get_possible_actions(const StateItem & item, action_collection_t & actions);
+  virtual int get_possible_actions(const StateItem & item, action_collection_t & actions);
 
   /**
    * Config the input onto this pipe. This function
