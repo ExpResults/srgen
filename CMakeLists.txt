@@ -9,7 +9,7 @@ set (CMAKE_CXX_FLAGS "-g")
 set (EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 set (SOURCE_DIR             ${PROJECT_SOURCE_DIR}/src)
 
-include_directories (${SOURCE_DIR})
+include_directories (${Boost_INCLUDE_DIRS} ${SOURCE_DIR})
 
 link_directories (${Boost_LIBRARY_DIRS})
 
