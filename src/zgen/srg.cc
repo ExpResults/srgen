@@ -30,6 +30,7 @@ int main(int argc, char * argv[]) {
     ("display,d",   po::value<int>(),         "The display interval.")
     ("beam,b",      po::value<int>(),         "The size for beam.")
     ("unlabeled,u",                           "Specified to perform unlabeled parse.")
+    ("unshuffle,s",                           "Specified to shutdown shuffle options")
     ("verbose,v",                             "Logging every detail.")
     ;
 
@@ -124,7 +125,7 @@ int main(int argc, char * argv[]) {
       for (int j = 0; j < gold_actions.size(); ++ j) {
         BOOST_LOG_TRIVIAL(trace) << "GOLD action step #" << j << " : " << gold_actions[j];
       }
-    } else {
+    } else if (opts.shuffle_instance){
       shuffle_instance((*sentence), shuffled_sentence, order);
       sentence = (&shuffled_sentence);
     }

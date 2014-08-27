@@ -64,7 +64,9 @@ bool parse_config(boost::program_options::variables_map& vm,
     } else if (vm["type"].as<std::string>() == "full") {
       opts.input_type = option_t::FULL;
     } else if (vm["type"].as<std::string>() == "full-guide") {
-      opts.input_type = option_t::FULL_WITH_GUIDANCE;
+      opts.input_type = option_t::FULL_WITH_GUIDANCE_FEATURE;
+    } else if (vm["type"].as<std::string>() == "full-topdown") {
+      opts.input_type = option_t::FULL_WITH_TOPDOWN_CONSTRAIN;
     } else {
       BOOST_LOG_TRIVIAL(error) << "Unknown type [" << vm["type"].as<std::string>() << "]";
       return false;
@@ -104,13 +106,21 @@ bool parse_config(boost::program_options::variables_map& vm,
     opts.output_label = false;
   }
 
+  if (!vm.count("unshuffle")) {
+    opts.shuffle_instance = true;
+  } else {
+    opts.shuffle_instance = false;
+  }
   // [Parse beam size
   opts.beam_size = 64;
   if (vm.count("beam")) {
     opts.beam_size = vm["beam"].as<int>();
   }
 
-  if (opts.input_type != option_t::FULL_WITH_GUIDANCE) {
+  if (opts.input_type == option_t::FULL_WITH_TOPDOWN_CONSTRAIN
+      || opts.input_type == option_t::FULL_WITH_GUIDANCE_FEATURE) {
+    // This two conditions do not load path.
+  } else {
     // If the input type is none, perform none reference generation. At the condition,
     // the postags dict is loaded to speed up the training.
     if (vm.count("posdict")) {

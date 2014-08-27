@@ -41,7 +41,7 @@ int FullWithTopDownConstrainPipe::get_possible_actions(const StateItem& item,
     if (!all_descendants_shifted) {
       for (int j = 0; j < descendants.size(); ++ j) {
         int d = descendants[j];
-        if (item.buffer.test(d) && conform_constrain(item, j)) {
+        if (item.buffer.test(d) && conform_constrain(item, d)) {
           word_t word = input_ref->forms[d];
           postag_t tag = input_ref->postags[d];
           get_possible_shift_actions(item, d, word, tag, actions);
@@ -84,13 +84,13 @@ bool FullWithTopDownConstrainPipe::conform_constrain(const StateItem& item, int 
   const DependencyTree::edgeset_t& children = tree.children(j);
   for (int i = 0; i < children.size(); ++ i) {
     int c = children[i];
-    if (item.buffer.test(c) && false && illegal_right_arc(j, c)) {
+    if (item.buffer.test(c) && illegal_right_arc(j, c)) {
       return false;
     }
   }
-  for (int i = j; i != -1; i = tree.head(i)) {
+  for (int i = j; tree.head(i) != -1; i = tree.head(i)) {
     int h = tree.head(i);
-    if (h!= -1 && item.buffer.test(h) && illegal_left_arc(h, i)) {
+    if (item.buffer.test(h) && illegal_left_arc(h, i)) {
       return false;
     }
   }

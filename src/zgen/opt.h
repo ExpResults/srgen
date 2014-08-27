@@ -7,7 +7,10 @@
 
 //
 struct Option {
-  enum { NONE, PARTIAL, FULL, FULL_WITH_GUIDANCE};
+  enum { NONE, PARTIAL, FULL,
+    FULL_WITH_GUIDANCE_FEATURE,
+    FULL_WITH_TOPDOWN_CONSTRAIN,
+  };
 
   // [The input type
   int input_type;
@@ -33,6 +36,8 @@ struct Option {
   int beam_size;
 
   bool output_label;
+
+  bool shuffle_instance;
 
   bool use_stdin;
 
