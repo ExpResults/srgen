@@ -5,7 +5,7 @@ namespace ZGen {
 namespace ShiftReduce {
 
 FullWithGuidancePipe::FullWithGuidancePipe(int beam_size) 
-  : FullPipe(beam_size) {
+  : FullPipe(NULL, true, beam_size) {
 }
 
 

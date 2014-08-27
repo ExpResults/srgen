@@ -22,7 +22,10 @@ SR::Pipe* build_pipe(const option_t& opts) {
           opts.beam_size);
       break;
     case option_t::FULL:
-      pipe = new SR::FullPipe(opts.beam_size);
+      pipe = new SR::FullPipe(
+          opts.postag_dict_path.c_str(),
+          opts.output_label,
+          opts.beam_size);
       break;
     case option_t::FULL_WITH_GUIDANCE:
       pipe = new SR::FullWithGuidancePipe(opts.beam_size);

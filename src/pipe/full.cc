@@ -5,8 +5,10 @@ namespace ZGen {
 
 namespace ShiftReduce {
 
-FullPipe::FullPipe(int beam_size)
-  : Pipe(beam_size) {
+FullPipe::FullPipe(const char* postag_dict_path,
+    bool output_label,
+    int beam_size)
+  : Pipe(postag_dict_path, output_label, beam_size) {
 }
 
 FullPipe::~FullPipe() {
@@ -22,7 +24,7 @@ int FullPipe::get_possible_actions(const StateItem & item,
       if (item.buffer.test(j)) {
         word_t   word = input_ref->forms[j];
         postag_t  tag = input_ref->postags[j];
-        actions.push_back(action::action_t(ActionEncoderAndDecoder::SH, tag, word, j));
+        get_possible_shift_actions(item, j, word, tag, actions);
       }
     }
   } else {
@@ -44,7 +46,7 @@ int FullPipe::get_possible_actions(const StateItem & item,
         if (item.buffer.test(d)) {
           word_t word = input_ref->forms[d];
           postag_t tag = input_ref->postags[d];
-          actions.push_back(action::action_t(ActionEncoderAndDecoder::SH, tag, word, d));
+          get_possible_shift_actions(item, d, word, tag, actions);
         }
       }
     } else {
@@ -64,7 +66,7 @@ int FullPipe::get_possible_actions(const StateItem & item,
           if (item.buffer.test(s)) {
             word_t word = input_ref->forms[s];
             postag_t tag = input_ref->postags[s];
-            actions.push_back(action::action_t(ActionEncoderAndDecoder::SH, tag, word, s));
+            get_possible_shift_actions(item, s, word, tag, actions);
           }
         }
 
@@ -72,7 +74,7 @@ int FullPipe::get_possible_actions(const StateItem & item,
         if (item.buffer.test(h)) {
           word_t word = input_ref->forms[h];
           postag_t tag = input_ref->postags[h];
-          actions.push_back(action::action_t(ActionEncoderAndDecoder::SH, tag, word, h));
+          get_possible_shift_actions(item, h, word, tag, actions);
         }
       }
     }

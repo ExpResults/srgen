@@ -10,39 +10,11 @@ const int kStackLegalStart = 1;
 PartialPipe::PartialPipe(const char* postag_dict_path,
     bool output_label,
     int beam_size)
-  : constraint(postag_dict_path),
-  labeled(output_label),
-  Pipe(beam_size) {
+  : Pipe(postag_dict_path, output_label, beam_size) {
 }
 
 
 PartialPipe::~PartialPipe() {
-}
-
-
-void PartialPipe::get_possible_shift_actions(const StateItem& item, 
-    int j, word_t word, postag_t tag, action_collection_t& actions) {
-  if (tag == PoSTagEncoderAndDecoder::NONE) {
-    // If no postag is provided. Get a possible postag.
-    const char* name= WordEngine::get_const_instance().decode(
-        item.instance_ref->forms.at(j));
-    std::vector< postag_t > possible_tags;
-
-    if (input_ref->is_phrases[j]) {
-      possible_tags.push_back(PoSTagEncoderAndDecoder::NP);
-    } else {
-      constraint.get_possible_tags(name, possible_tags);
-    }
-
-    for (int i = 0; i < possible_tags.size(); ++ i) {
-      tag = possible_tags[i];
-      actions.push_back(action::action_t(ActionEncoderAndDecoder::SH, tag,
-            item.instance_ref->forms.at(j), j));
-    }
-  } else {
-    actions.push_back(action::action_t(ActionEncoderAndDecoder::SH, tag, word, j));
-  }
-
 }
 
 //

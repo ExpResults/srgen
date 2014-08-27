@@ -7,10 +7,7 @@ namespace ShiftReduce {
 // The NonePipe
 NonePipe::NonePipe(const char * postag_dict_path,
     bool output_label,
-    int beam_size)
-  : labeled(output_label),
-  constraint(postag_dict_path),
-  Pipe(beam_size) {
+    int beam_size) : Pipe(postag_dict_path, output_label, beam_size) {
 }
 
 
@@ -21,27 +18,9 @@ int NonePipe::get_possible_actions(const StateItem & item,
   // Then loop over the words in the buffer.
   for (int j = 0; j < item.N; ++ j) {
     if (item.buffer.test(j)) {
-      postag_t tag = input_ref->postags[j];
-
-      if (tag == 0) {
-        // Generate all possible SHIFT actions, first loop over possible PoSTags.
-        const char * name = WordEngine::get_const_instance().decode(item.instance_ref->forms.at(j));
-        std::vector< postag_t > possible_tags;
-        if (input_ref->is_phrases[j]) {
-          possible_tags.push_back(PoSTagEncoderAndDecoder::NP);
-        } else {
-          constraint.get_possible_tags(name, possible_tags);
-        }
-
-        for (int i = 0; i < possible_tags.size(); ++ i) {
-          postag_t tag = possible_tags[i];
-          actions.push_back(action::action_t(ActionEncoderAndDecoder::SH, tag,
-                input_ref->forms[j], j));
-        }
-      } else {
-        actions.push_back(action::action_t(ActionEncoderAndDecoder::SH, tag,
-              input_ref->forms[j], j));
-      }
+      word_t   word = input_ref->forms[j];
+      postag_t  tag = input_ref->postags[j];
+      get_possible_shift_actions(item, j, word, tag, actions);
     }
   }
 

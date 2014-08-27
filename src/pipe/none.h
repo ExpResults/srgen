@@ -33,10 +33,6 @@ protected:
   int config_sentence(const dependency_t* input);
 
   int config_initial_lattice();
-
-  constraint_t constraint;
-
-  bool labeled;
 };
 
 } //  end for namespace ShiftReduce

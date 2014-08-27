@@ -110,7 +110,7 @@ bool parse_config(boost::program_options::variables_map& vm,
     opts.beam_size = vm["beam"].as<int>();
   }
 
-  if (opts.input_type == option_t::NONE || opts.input_type == option_t::PARTIAL) {
+  if (opts.input_type != option_t::FULL_WITH_GUIDANCE) {
     // If the input type is none, perform none reference generation. At the condition,
     // the postags dict is loaded to speed up the training.
     if (vm.count("posdict")) {

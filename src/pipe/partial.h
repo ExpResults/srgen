@@ -28,21 +28,13 @@ protected:
 protected:
   DependencyForest forest;
 
-  constraint_t constraint;
-
 private:
-  /**/
-  void get_possible_shift_actions(const StateItem& item, int j,
-      word_t word, postag_t tag, action_collection_t& actions);
-
   /**/
   bool legal_shift(const StateItem& item, int j);
 
   bool legal_left_arc(const StateItem& item);
 
   bool legal_right_arc(const StateItem& item);
-
-  bool labeled;
 };
 
 } //  end for namespace ShiftReduce

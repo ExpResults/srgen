@@ -28,8 +28,12 @@ public:
   //
 
 public:
-  Pipe(int beam_size);
+  /**/
+  Pipe(const char* postag_dict_path,
+      bool output_label,
+      int beam_size);
 
+  /**/
   virtual ~Pipe();
 
   /**
@@ -106,6 +110,16 @@ protected:
    */
   virtual int update_state_score(const StateItem & item,
       const action::action_t & act, int now, int scale);
+
+  /**/
+  void get_possible_shift_actions(const StateItem& item, int j,
+      word_t word, postag_t tag, action_collection_t& actions);
+
+
+  constraint_t constraint;
+
+  // Use to specify is output labeled dependency relation.
+  bool labeled;
 
   // The timestamp for currently processed instance.
   int timestamp;
