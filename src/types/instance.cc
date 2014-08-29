@@ -11,6 +11,7 @@ void DependencyParse::clear() {
   deprels.clear();
   words.clear();
   phrases.clear();
+  extras.clear();
 }
 
 void DependencyParse::push_back(const word_t & form,
@@ -23,6 +24,15 @@ void DependencyParse::push_back(const word_t & form,
   deprels.push_back(deprel);
 }
 
+void DependencyParse::push_back(const word_t& form, 
+    const postag_t& postag,
+    const int head,
+    const deprel_t& deprel,
+    const std::string& extra) {
+  push_back(form, postag, head, deprel);
+  extras.push_back(extra);
+}
+
 void DependencyParse::push_back(const word_t & form,
     const postag_t & postag,
     const int head,
@@ -31,12 +41,9 @@ void DependencyParse::push_back(const word_t & form,
     const range_t & phrase,
     bool is_phrase) {
 
-  forms.push_back(form);
-  postags.push_back(postag);
-  heads.push_back(head);
-  deprels.push_back(deprel);
-  phrases.push_back(phrase);
+  push_back(form, postag, head, deprel);
 
+  phrases.push_back(phrase);
   for (int i = 0; i < extended_words.size(); ++ i) {
     word_t word = extended_words[i];
     words.push_back(word);
@@ -45,6 +52,19 @@ void DependencyParse::push_back(const word_t & form,
   is_phrases.push_back(is_phrase);
   return;
 }
+
+void DependencyParse::push_back(const word_t& form,
+    const postag_t& postag,
+    const int head,
+    const deprel_t& deprel,
+    const std::vector<word_t>& extended_words,
+    const range_t& phrase,
+    bool is_phrase,
+    const std::string& extra) {
+  push_back(form, postag, head, deprel, extended_words, phrase, is_phrase);
+  extras.push_back(extra);
+}
+
 
 size_t DependencyParse::size() const {
   return forms.size();

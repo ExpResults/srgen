@@ -19,12 +19,16 @@ protected:
   /**/
   int get_possible_actions(const StateItem& item, action_collection_t& actions);
 
+  /**/
+  int config_sentence(const dependency_t* input);
 private:
   bool conform_constrain(const StateItem& item, int j);
 
   bool illegal_right_arc(int from, int to);
 
   bool illegal_left_arc(int from, int to);
+
+  std::vector<int> direction;
 };
 
 } //  end for namespace Shiftreduce

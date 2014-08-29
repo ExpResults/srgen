@@ -123,13 +123,13 @@ int read_from_dep(std::istream & is,
         is_phrase = false;
       }
 
-      parse.push_back(form,
-          postag,
-          atoi(items[2].c_str()),
-          deprel,
-          extended_words,
-          phrase,
-          is_phrase);
+      if (items.size() == 4) {
+        parse.push_back(form, postag, atoi(items[2].c_str()),
+            deprel, extended_words, phrase, is_phrase);
+      } else if (items.size() > 4) {
+        parse.push_back(form, postag, atoi(items[2].c_str()),
+            deprel, extended_words, phrase, is_phrase, items[4]);
+      }
 
       item ++;
     }

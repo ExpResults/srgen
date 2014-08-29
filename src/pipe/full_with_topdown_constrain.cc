@@ -12,6 +12,23 @@ FullWithTopDownConstrainPipe::FullWithTopDownConstrainPipe(int beam_size)
 FullWithTopDownConstrainPipe::~FullWithTopDownConstrainPipe() {
 }
 
+
+int FullWithTopDownConstrainPipe::config_sentence(const dependency_t* input) {
+  FullPipe::config_sentence(input);
+  int N = input->size();
+  direction.resize(N);
+  if (input->extras.size() == N) {
+    for (int i = 0; i < N; ++ i) {
+      direction[i] = atoi(input->extras[i].c_str());
+    }
+  } else {
+    for (int i = 0; i < N; ++ i) {
+      direction[i] = 0;
+    }
+  }
+  return 0;
+}
+
 /**/
 int FullWithTopDownConstrainPipe::get_possible_actions(const StateItem& item,
     action_collection_t& actions) {
@@ -98,13 +115,16 @@ bool FullWithTopDownConstrainPipe::conform_constrain(const StateItem& item, int 
 }
 
 bool FullWithTopDownConstrainPipe::illegal_right_arc(int from, int to) {
+  int d = direction[to];
+  if (-1 == d) {
+    return true;
+  }
   return false;
 }
 
 bool FullWithTopDownConstrainPipe::illegal_left_arc(int from, int to) {
-  deprel_t deprel = input_ref->deprels[to];
-  if (deprel == DeprelsEncoderAndDecoder::OBJ
-      || deprel== DeprelsEncoderAndDecoder::SBAR) {
+  int d = direction[to];
+  if (1 == d) {
     return true;
   }
   return false;

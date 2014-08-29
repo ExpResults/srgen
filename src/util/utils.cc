@@ -31,6 +31,10 @@ void shuffle_instance(const dependency_t & instance,
     shuffled_instance.deprels.resize(N);
   }
 
+  if (N == instance.extras.size()) {
+    shuffled_instance.extras.resize(N);
+  }
+
   for (int i = 0; i < N; ++ i) {
     shuffled_instance.forms[order[i]] = instance.forms[i];
     shuffled_instance.is_phrases[order[i]] = instance.is_phrases[i];
@@ -47,6 +51,10 @@ void shuffle_instance(const dependency_t & instance,
         shuffled_instance.heads[order[i]] = order[instance.heads[i]];
         shuffled_instance.deprels[order[i]] = instance.deprels[i];
       }
+    }
+
+    if (N == instance.extras.size()) {
+      shuffled_instance.extras[order[i]] = instance.extras[i];
     }
   }
 

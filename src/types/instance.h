@@ -40,14 +40,20 @@ struct DependencyParse {
 
   std::vector<bool>       is_phrases;
 
-  void clear();
+  std::vector<std::string> extras;
 
+  void clear();
 
   void push_back(const word_t & form,
       const postag_t & postag,
       const int head,
       const deprel_t & deprel);
 
+  void push_back(const word_t& form,
+      const postag_t& postag,
+      const int head,
+      const deprel_t& deprel,
+      const std::string& extra);
 
   void push_back(const word_t & form,
       const postag_t & postag,
@@ -57,6 +63,14 @@ struct DependencyParse {
       const range_t & phrase,
       bool is_phrase);
 
+  void push_back(const word_t& form,
+      const postag_t& postag,
+      const int head,
+      const deprel_t& deprel,
+      const std::vector<word_t>& extended_words,
+      const range_t& phrase,
+      bool is_phrase,
+      const std::string& extra);
 
   size_t size() const;
 
