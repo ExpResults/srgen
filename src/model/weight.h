@@ -39,9 +39,12 @@ struct BasicWeight {
   bs_map_t    W0W1, P0P1;
   ts_map_t    W0W1W2, P0P1P2;
 
-  // High level guidance feature.
+  // High level guidance feature. especially for full tree.
   us_map_t    S0lvl0, S0lvl1, S0lvl2;
   us_map_t    S1lvl0, S1lvl1, S1lvl2;
+
+  us_map_t    ToRootMinLeftProb,    ToRootMaxRightProb;
+  us_map_t    ToChildMinRightProb,  ToChildMaxLeftProb;
 
   //
   bool flush_weight(int now);

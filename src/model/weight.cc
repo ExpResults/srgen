@@ -110,6 +110,8 @@ bool BasicWeight::save_weight(const char * filename) {
   oa << W0W1W2 << P0P1P2;
   oa << S0lvl0 << S0lvl1 << S0lvl2;
   oa << S1lvl0 << S1lvl1 << S1lvl2;
+  oa << ToRootMinLeftProb   << ToRootMaxRightProb;
+  oa << ToChildMinRightProb << ToChildMaxLeftProb;
   ofs.close();
 
   return true;
@@ -150,6 +152,8 @@ bool BasicWeight::load_weight(const char * filename) {
   ia >> W0W1W2 >> P0P1P2;
   ia >> S0lvl0 >> S0lvl1 >> S0lvl2;
   ia >> S1lvl0 >> S1lvl1 >> S1lvl2;
+  ia >> ToRootMinLeftProb   >> ToRootMaxRightProb;
+  ia >> ToChildMinRightProb >> ToChildMaxLeftProb;
 
   ifs.close();
   return true;
@@ -187,6 +191,8 @@ bool BasicWeight::flush_weight(int now) {
   __FUM(S0lvl0); __FUM(S0lvl1); __FUM(S0lvl2);
   __FUM(S1lvl0); __FUM(S1lvl1); __FUM(S1lvl2);
 
+  __FUM(ToRootMinLeftProb);   __FUM(ToRootMaxRightProb);
+  __FUM(ToChildMinRightProb); __FUM(ToChildMaxLeftProb);
   return true;
 }
 

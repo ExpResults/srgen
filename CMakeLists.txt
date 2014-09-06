@@ -5,7 +5,7 @@ find_package (Boost REQUIRED)
 
 add_definitions (-DBOOST_LOG_DYN_LINK)
 
-set (CMAKE_CXX_FLAGS "-g")
+set (CMAKE_CXX_FLAGS "-std=c++11")
 set (EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 set (SOURCE_DIR             ${PROJECT_SOURCE_DIR}/src)
 
@@ -24,12 +24,14 @@ add_executable (srg
     ${SOURCE_DIR}/util/utils.cc
     ${SOURCE_DIR}/extract/extractor.cc
     ${SOURCE_DIR}/extract/full_with_guidance_feature_extractor.cc
+    ${SOURCE_DIR}/extract/full_with_topdown_feature_extractor.cc
     ${SOURCE_DIR}/io/io.cc
     ${SOURCE_DIR}/pipe/pipe.cc
     ${SOURCE_DIR}/pipe/none.cc
     ${SOURCE_DIR}/pipe/partial.cc
     ${SOURCE_DIR}/pipe/full.cc
     ${SOURCE_DIR}/pipe/full_with_guidance_feature.cc
+    ${SOURCE_DIR}/pipe/full_with_topdown_feature.cc
     ${SOURCE_DIR}/pipe/full_with_topdown_constrain.cc
     ${SOURCE_DIR}/zgen/opt.cc
     ${SOURCE_DIR}/zgen/srg.cc

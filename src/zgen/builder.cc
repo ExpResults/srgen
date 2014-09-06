@@ -3,6 +3,7 @@
 #include "pipe/partial.h"
 #include "pipe/full.h"
 #include "pipe/full_with_guidance_feature.h"
+#include "pipe/full_with_topdown_feature.h"
 #include "pipe/full_with_topdown_constrain.h"
 #include <boost/log/trivial.hpp>
 
@@ -29,10 +30,16 @@ SR::Pipe* build_pipe(const option_t& opts) {
           opts.beam_size);
       break;
     case option_t::FULL_WITH_GUIDANCE_FEATURE:
-      pipe = new SR::FullWithGuidanceFeaturePipe(opts.beam_size);
+      pipe = new SR::FullWithGuidanceFeaturePipe(
+          opts.beam_size);
+      break;
+    case option_t::FULL_WITH_TOPDOWN_FEATURE:
+      pipe = new SR::FullWithTopDownFeaturePipe(
+          opts.beam_size);
       break;
     case option_t::FULL_WITH_TOPDOWN_CONSTRAIN:
-      pipe = new SR::FullWithTopDownConstrainPipe(opts.beam_size);
+      pipe = new SR::FullWithTopDownConstrainPipe(
+          opts.beam_size);
       break;
     default:
       return NULL;

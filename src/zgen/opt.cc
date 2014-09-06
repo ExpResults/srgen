@@ -63,10 +63,12 @@ bool parse_config(boost::program_options::variables_map& vm,
       opts.input_type = option_t::PARTIAL;
     } else if (vm["type"].as<std::string>() == "full") {
       opts.input_type = option_t::FULL;
-    } else if (vm["type"].as<std::string>() == "full-guide") {
+    } else if (vm["type"].as<std::string>() == "full-guide-feature") {
       opts.input_type = option_t::FULL_WITH_GUIDANCE_FEATURE;
-    } else if (vm["type"].as<std::string>() == "full-topdown") {
+    } else if (vm["type"].as<std::string>() == "full-topdown-constrain") {
       opts.input_type = option_t::FULL_WITH_TOPDOWN_CONSTRAIN;
+    } else if (vm["type"].as<std::string>() == "full-topdown-feature") {
+      opts.input_type = option_t::FULL_WITH_TOPDOWN_FEATURE;
     } else {
       BOOST_LOG_TRIVIAL(error) << "Unknown type [" << vm["type"].as<std::string>() << "]";
       return false;
@@ -118,6 +120,7 @@ bool parse_config(boost::program_options::variables_map& vm,
   }
 
   if (opts.input_type == option_t::FULL_WITH_TOPDOWN_CONSTRAIN
+      || opts.input_type == option_t::FULL_WITH_TOPDOWN_FEATURE
       || opts.input_type == option_t::FULL_WITH_GUIDANCE_FEATURE) {
     // This two conditions do not load path.
   } else {
