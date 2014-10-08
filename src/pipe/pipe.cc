@@ -2,6 +2,7 @@
 #include <boost/log/trivial.hpp>
 #include <boost/assert.hpp>
 #include "pipe/pipe.h"
+#include "io/io.h"
 
 namespace ZGen {
 
@@ -14,9 +15,11 @@ static bool TransitionHeapMore (const Pipe::scored_transition_t & x,
 
 
 Pipe::Pipe(const char* postag_dict_path,
+    bool _learn,
     bool output_label,
     int beam_size)
   : constraint(postag_dict_path),
+  learn(_learn),
   labeled(output_label),
   max_beam_size(beam_size) {
 
@@ -282,6 +285,45 @@ const StateItem * Pipe::search_best_state(const StateItem * begin,
   return best;
 }
 
+void Pipe::build_output(const StateItem* item,
+    const dependency_t* input,
+    dependency_t& output) {
+  int N = input->size();
+  // Since the word_sequence store the actual word order, ignoring the phrase settings
+  // and what the output should take the phrases into consideration, 
+  std::vector<int> order;
+  for (const StateItem* p = item; p->previous; p = p->previous) {
+    if (action::is_shift(p->last_action)) { order.push_back(p->last_action.index); }
+  }
+
+  output.clear();
+
+  if (order.size() != N) {
+    BOOST_LOG_TRIVIAL(warning) << "#" << timestamp << ": ORDER is not equal to the sent size "
+      << "order: " << order.size() << " N: " << N;
+    return;
+  }
+
+  std::reverse(order.begin(), order.end());
+
+  std::vector<int> rank;
+  // collect the rank for each form.
+  rank.resize(N);
+  for (int i = 0; i < N; ++ i) { rank[order[i]] = i; }
+
+  for (int i = 0, k = 0; i < N; ++ i) {
+    int j = order[i];
+    std::vector<word_t> words(input->words.begin() + input->phrases[j].first,
+        input->words.begin() + input->phrases[j].second);
+
+    output.push_back(input->forms[j], item->postags[j],
+        (item->heads[j] == -1 ? -1 : rank[item->heads[j]]),
+        item->deprels[j], words,
+        dependency_t::range_t(k, k + words.size()),
+        input->is_phrases[j]);
+    k += words.size();
+  }
+}
 
 void Pipe::work(const dependency_t* input,
     const std::vector<action::action_t> & gold_actions,
@@ -408,39 +450,9 @@ void Pipe::work(const dependency_t* input,
     return;
   }
 
-  // Since the word_sequence store the actual word order, ignoring the phrase settings
-  // and what the output should take the phrases into consideration, 
-  std::vector<int> order;
-  for (const StateItem* p = best_to; p->previous; p = p->previous) {
-    if (action::is_shift(p->last_action)) { order.push_back(p->last_action.index); }
-  }
-
-  output.clear();
-
-  if (order.size() != N) {
-    BOOST_LOG_TRIVIAL(warning) << "#" << now << ": ORDER is not equal to the sent size "
-      << "order: " << order.size() << " N: " << N;
-    return;
-  }
-
-  std::reverse(order.begin(), order.end());
-
-  std::vector<int> rank;
-  // collect the rank for each form.
-  rank.resize(N);
-  for (int i = 0; i < N; ++ i) { rank[order[i]] = i; }
-
-  for (int i = 0, k = 0; i < N; ++ i) {
-    int j = order[i];
-    std::vector<word_t> words(input->words.begin() + input->phrases[j].first,
-        input->words.begin() + input->phrases[j].second);
-
-    output.push_back(input->forms[j], best_to->postags[j],
-        (best_to->heads[j] == -1 ? -1 : rank[best_to->heads[j]]),
-        best_to->deprels[j], words,
-        dependency_t::range_t(k, k + words.size()),
-        input->is_phrases[j]);
-    k += words.size();
+  for (const StateItem* to = lattice_index[step- 1]; to != lattice_index[step]; ++ to) {
+    build_output(to, input, output);
+    write_dep_instance(std::cout, output);
   }
 }
 

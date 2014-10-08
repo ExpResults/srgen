@@ -34,7 +34,7 @@ cp ${ROOT}/bin/srg ${EXE}
 rm ${MODEL_PREFIX}.*
 
 for i in `seq 1 50`; do
-    ${EXE} learn -t partial\
+    ${EXE} learn -t full \
         -m ${MODEL_PREFIX} \
         -p ${DIC}          \
         -r ${TRAIN_DEP}    \
@@ -43,13 +43,13 @@ for i in `seq 1 50`; do
     tar zcvf ${MODEL_PREFIX}.weight.${i}.tgz ${MODEL_PREFIX}.weight
     tar zcvf ${MODEL_PREFIX}.word.${i}.tgz ${MODEL_PREFIX}.word
 
-    ${EXE} test -t partial  \
+    ${EXE} test -t full  \
         -m ${MODEL_PREFIX}  \
         -p ${DIC}           \
         -i ${DEV_IN}        \
         -o ${OUTPUT_DIR}/devo.dep.${i}
 
-    ${EXE} test -t partial  \
+    ${EXE} test -t full  \
         -m ${MODEL_PREFIX}  \
         -p ${DIC}           \
         -i ${TEST_IN}       \

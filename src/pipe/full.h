@@ -11,6 +11,7 @@ namespace ShiftReduce {
 class FullPipe : public Pipe {
 public:
   FullPipe(const char * postag_dict_path,
+      bool learn,
       bool ouptut_label,
       int beam_size);
   ~FullPipe();

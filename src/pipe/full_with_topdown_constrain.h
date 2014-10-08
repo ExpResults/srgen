@@ -10,7 +10,7 @@ namespace ShiftReduce {
 class FullWithTopDownConstrainPipe: public FullPipe {
 public:
   //
-  FullWithTopDownConstrainPipe(int beam_size);
+  FullWithTopDownConstrainPipe(bool learn, int beam_size);
 
   //
   ~FullWithTopDownConstrainPipe();

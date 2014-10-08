@@ -69,7 +69,7 @@ int main(int argc, char * argv[]) {
   namespace SR = ZGen::ShiftReduce;
 
   // [Allocate a pipe.
-  SR::Pipe* pipe = build_pipe(opts);
+  SR::Pipe* pipe = build_pipe(train_mode, opts);
   if (pipe == NULL) {
     BOOST_LOG_TRIVIAL(error) << "SRG: Failed to allocate pipe";
     return 1;

@@ -30,6 +30,7 @@ public:
 public:
   /**/
   Pipe(const char* postag_dict_path,
+      bool learn,
       bool output_label,
       int beam_size);
 
@@ -118,6 +119,9 @@ protected:
 
   constraint_t constraint;
 
+  //! Specify the learning mode.
+  bool learn;
+
   // Use to specify is output labeled dependency relation.
   bool labeled;
 
@@ -202,6 +206,10 @@ private:
    */
   const StateItem * search_best_state(const StateItem * begin,
       const StateItem * end);
+
+  void build_output(const StateItem* item,
+      const dependency_t* input,
+      dependency_t& output);
 
 private:
   int max_beam_size;

@@ -11,6 +11,7 @@ namespace ShiftReduce {
 class NonePipe: public Pipe {
 public:
   NonePipe(const char * postag_dict_path,
+      bool learn,
       bool output_label,
       int beam_size);
 

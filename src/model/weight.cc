@@ -152,9 +152,10 @@ bool BasicWeight::load_weight(const char * filename) {
   ia >> W0W1W2 >> P0P1P2;
   ia >> S0lvl0 >> S0lvl1 >> S0lvl2;
   ia >> S1lvl0 >> S1lvl1 >> S1lvl2;
-  ia >> ToRootMinLeftProb   >> ToRootMaxRightProb;
-  ia >> ToChildMinRightProb >> ToChildMaxLeftProb;
-
+  if (!ifs.eof()) {
+    ia >> ToRootMinLeftProb   >> ToRootMaxRightProb;
+    ia >> ToChildMinRightProb >> ToChildMaxLeftProb;
+  }
   ifs.close();
   return true;
 }

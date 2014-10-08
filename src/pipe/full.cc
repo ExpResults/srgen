@@ -6,9 +6,10 @@ namespace ZGen {
 namespace ShiftReduce {
 
 FullPipe::FullPipe(const char* postag_dict_path,
+    bool learn,
     bool output_label,
     int beam_size)
-  : Pipe(postag_dict_path, output_label, beam_size) {
+  : Pipe(postag_dict_path, learn, output_label, beam_size) {
 }
 
 FullPipe::~FullPipe() {

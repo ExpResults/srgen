@@ -8,21 +8,21 @@
 #define __GUS(name) do { \
   if (ctx.name) { \
     scores[act] += get_score<us_map_t, us_t>(weight.name, \
-        us_t(ctx.name, act), true, 0); \
+        us_t(ctx.name, act), !learn, 0); \
   } \
 } while (0);
 
 #define __GBS(name1, name2) do { \
   if (ctx.name1 && ctx.name2) { \
     scores[act] += get_score<bs_map_t, bs_t>(weight.name1##name2, \
-        bs_t(ctx.name1, ctx.name2, act), true, 0); \
+        bs_t(ctx.name1, ctx.name2, act), !learn, 0); \
   } \
 } while (0);
 
 #define __GTS(name1, name2, name3) do { \
   if (ctx.name1 && ctx.name2 && ctx.name3) { \
     scores[act] += get_score<ts_map_t, ts_t>(weight.name1##name2##name3, \
-        ts_t(ctx.name1, ctx.name2, ctx.name3, act), true, 0); \
+        ts_t(ctx.name1, ctx.name2, ctx.name3, act), !learn, 0); \
   } \
 } while (0);
 

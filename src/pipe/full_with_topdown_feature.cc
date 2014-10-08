@@ -4,8 +4,9 @@ namespace ZGen {
 
 namespace ShiftReduce {
 
-FullWithTopDownFeaturePipe::FullWithTopDownFeaturePipe(int beam_size)
-  : FullPipe(NULL, true, beam_size) {
+FullWithTopDownFeaturePipe::FullWithTopDownFeaturePipe(bool learn, 
+    int beam_size)
+  : FullPipe(NULL, learn, true, beam_size) {
 }
 
 FullWithTopDownFeaturePipe::~FullWithTopDownFeaturePipe() {

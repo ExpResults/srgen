@@ -3,15 +3,15 @@
 ROOT=`pwd`
 
 TRAIN_DEP=${ROOT}/data/train/train-labeled.dep
-TRAIN_IN=${ROOT}/data/input/train-allpos-alldep.depl
+TRAIN_IN=${ROOT}/data/input/train-allpos-alldep-dirprob.depl
 
 TEST_TOK=${ROOT}/data/test/testr.tok
-TEST_IN=${ROOT}/data/input/test-allpos-alldep.depl
+TEST_IN=${ROOT}/data/input/test-allpos-alldep-dirprob.depl
 
 DEV_TOK=${ROOT}/data/dev/devr.tok
-DEV_IN=${ROOT}/data/input/dev-allpos-alldep.depl
+DEV_IN=${ROOT}/data/input/dev-allpos-alldep-dirprob.depl
 
-SIG=`date '+%Y-%m-%d-%H%M%S'`-labeled-topdown-constrain
+SIG=`date '+%Y-%m-%d-%H%M%S'`-labeled-topdown-feature
 
 DIC=${ROOT}/data/dic/dic.7
 
@@ -34,7 +34,7 @@ cp ${ROOT}/bin/srg ${EXE}
 rm ${MODEL_PREFIX}.*
 
 for i in `seq 1 50`; do
-    ${EXE} learn -t full-topdown \
+    ${EXE} learn -t full-topdown-feature \
         -m ${MODEL_PREFIX} \
         -p ${DIC}          \
         -r ${TRAIN_DEP}    \
@@ -43,13 +43,13 @@ for i in `seq 1 50`; do
     tar zcvf ${MODEL_PREFIX}.weight.${i}.tgz ${MODEL_PREFIX}.weight
     tar zcvf ${MODEL_PREFIX}.word.${i}.tgz ${MODEL_PREFIX}.word
 
-    ${EXE} test -t full-topdown \
+    ${EXE} test -t full-topdown-feature \
         -m ${MODEL_PREFIX}  \
         -p ${DIC}           \
         -i ${DEV_IN}        \
         -o ${OUTPUT_DIR}/devo.dep.${i}
 
-    ${EXE} test -t full-topdown \
+    ${EXE} test -t full-topdown-feature \
         -m ${MODEL_PREFIX}  \
         -p ${DIC}           \
         -i ${TEST_IN}       \

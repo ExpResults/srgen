@@ -6,6 +6,6 @@
 
 namespace SR = ZGen::ShiftReduce;
 
-SR::Pipe* build_pipe(const option_t& opts);
+SR::Pipe* build_pipe(bool learn, const option_t& opts);
 
 #endif  //  end for __ZGEN_BUILDER_H__

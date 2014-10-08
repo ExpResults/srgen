@@ -11,7 +11,7 @@ namespace ShiftReduce {
 class FullWithGuidanceFeaturePipe: public FullPipe {
 public:
   //
-  FullWithGuidanceFeaturePipe(int beam_size);
+  FullWithGuidanceFeaturePipe(bool learn, int beam_size);
 
   //
   ~FullWithGuidanceFeaturePipe();

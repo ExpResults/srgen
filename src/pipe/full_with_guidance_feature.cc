@@ -4,8 +4,9 @@ namespace ZGen {
 
 namespace ShiftReduce {
 
-FullWithGuidanceFeaturePipe::FullWithGuidanceFeaturePipe(int beam_size) 
-  : FullPipe(NULL, true, beam_size) {
+FullWithGuidanceFeaturePipe::FullWithGuidanceFeaturePipe(bool learn, 
+    int beam_size) 
+  : FullPipe(NULL, learn, true, beam_size) {
 }
 
 

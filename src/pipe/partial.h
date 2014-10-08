@@ -11,6 +11,7 @@ namespace ShiftReduce {
 class PartialPipe: public Pipe {
 public:
   PartialPipe(const char * postag_dict_path,
+      bool learn,
       bool ouptut_label,
       int beam_size);
   ~PartialPipe();

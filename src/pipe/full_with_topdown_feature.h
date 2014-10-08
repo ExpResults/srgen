@@ -12,7 +12,7 @@ const double eps = 1e-6;
 class FullWithTopDownFeaturePipe: public FullPipe {
 public:
   //
-  FullWithTopDownFeaturePipe(int beam_size);
+  FullWithTopDownFeaturePipe(bool learn, int beam_size);
 
   //
   ~FullWithTopDownFeaturePipe();
