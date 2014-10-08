@@ -450,10 +450,7 @@ void Pipe::work(const dependency_t* input,
     return;
   }
 
-  for (const StateItem* to = lattice_index[step- 1]; to != lattice_index[step]; ++ to) {
-    build_output(to, input, output);
-    write_dep_instance(std::cout, output);
-  }
+  build_output(best_to, input, output);
 }
 
 }
