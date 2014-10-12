@@ -61,8 +61,8 @@ int Pipe::update_state_score(const StateItem & item,
   Context ctx(item);
 
   __UUS_EXT(S0);                                            // 1
-  __UBS_MATRIX_2_2(S0w, S0p, S0ldw, S0ldp/*, S0ldl*/);          // 2
-  __UBS_MATRIX_2_2(S0w, S0p, S0rdw, S0rdp/*, S0rdl*/);          // |
+  __UBS_MATRIX_2_3(S0w, S0p, S0ldw, S0ldp, S0ldl);          // 2
+  __UBS_MATRIX_2_3(S0w, S0p, S0rdw, S0rdp, S0rdl);          // |
   __UTS_MATRIX_2_2_1(S0w, S0p, S0ldw, S0ldp, S0S0ldDist);
   __UTS_MATRIX_2_2_1(S0w, S0p, S0rdw, S0rdp, S0S0rdDist);
   __UTS_CIRCLE_4(S0w, S0p, S0ldw, S0ldp);                   // 3
@@ -72,8 +72,8 @@ int Pipe::update_state_score(const StateItem & item,
   __UBS_EXT(S0ld, S0l2d);                                   // 5
   if (ctx.has_S1()) {
     __UUS_EXT(S1);                                          // 6
-    __UBS_MATRIX_2_2(S1w, S1p, S1ldw, S1ldp/*, S1ldl*/);        // 7
-    __UBS_MATRIX_2_2(S1w, S1p, S1rdw, S1rdp/*, S1rdl*/);        // |
+    __UBS_MATRIX_2_3(S1w, S1p, S1ldw, S1ldp, S1ldl);        // 7
+    __UBS_MATRIX_2_3(S1w, S1p, S1rdw, S1rdp, S1rdl);        // |
     __UTS_MATRIX_2_2_1(S1w, S1p, S1ldw, S1ldp, S1S1ldDist);
     __UTS_MATRIX_2_2_1(S1w, S1p, S1rdw, S1rdp, S1S1rdDist);
     __UTS_CIRCLE_4(S1w, S1p, S1ldw, S1ldp);                 // 8
