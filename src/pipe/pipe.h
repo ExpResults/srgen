@@ -7,7 +7,7 @@
 #include "types/constraint.h"
 #include "types/tree.h"
 #include "model/weight.h"
-
+#include <boost/functional/hash.hpp>
 namespace ZGen {
 
 namespace ShiftReduce {
@@ -21,7 +21,7 @@ public:
   typedef std::vector<action::action_t> action_sequence_t;
   //
 
-  typedef boost::unordered_map<action::action_t, floatval_t>  packed_score_t;
+  typedef std::unordered_map<action::action_t, floatval_t, boost::hash<action::action_t>>  packed_score_t;
   //
 
   typedef boost::tuples::tuple<const StateItem*, action::action_t, floatval_t> scored_transition_t;

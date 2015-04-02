@@ -88,7 +88,7 @@ struct Context {
           int S0r2d = item.right_2nd_most_child[S0];
           __SET_CTX(S0r2d);
         } else {
-          __CLEAR_CTX(S0l2d);
+          __CLEAR_CTX(S0r2d);
         }
 
         if ( _LEGEAL_RANGE_(item.right_most_child[S0rd]) ) {

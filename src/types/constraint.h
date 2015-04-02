@@ -5,7 +5,7 @@
 #include "types/instance.h"
 #include "types/engine.h"
 
-#include <boost/unordered_map.hpp>
+#include <unordered_map>
 
 namespace ZGen {
 
@@ -21,10 +21,8 @@ public:
 private:
   void init_default_possible_tags();
 
-
   typedef std::bitset<kNumberOfPoSTags>                 postag_mask_t;
-  typedef boost::unordered_map< word_t, postag_mask_t > map_t;
-
+  typedef std::unordered_map< word_t, postag_mask_t > map_t;
   map_t                                                 postag_constrains;
 };
 

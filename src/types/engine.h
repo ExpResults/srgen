@@ -1,9 +1,8 @@
 #ifndef __SR_ENGINE_H__
 #define __SR_ENGINE_H__
 
-#include "serialization/unordered_map.h"
-
-#include <boost/unordered_map.hpp>
+#include <unordered_map>
+#include <boost/serialization/unordered_map.hpp>
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/version.hpp>
@@ -128,7 +127,7 @@ public:
     NONE, BEGIN, END
   };
 
-  typedef boost::unordered_map<std::string, int> map_t;
+  typedef std::unordered_map<std::string, int> map_t;
 
   std::vector<std::string> id2name;
   map_t name2id;

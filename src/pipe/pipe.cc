@@ -241,7 +241,7 @@ StateItem * Pipe::search_correct_state(
     if (NULL == correct_state) {
       // Perform the second pass
       for (StateItem * p = lattice_begin; p!= lattice_end; ++ p) {
-        if (p->previous == correct_state &&
+        if (p->previous == previous_correct_state &&
             p->last_action == act) {
           int shifted_index = p->last_action.index;
           int expected_shifted_index = act.index;

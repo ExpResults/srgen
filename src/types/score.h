@@ -6,7 +6,6 @@
 
 #include <boost/tuple/tuple.hpp>
 #include <boost/tuple/tuple_comparison.hpp>
-
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/archive/text_oarchive.hpp>
 
@@ -19,29 +18,29 @@ struct UnigramScore {
   UnigramScore() {}
   
   UnigramScore(int feat, const action::action_t& act)
-    : payload(feat, act) {
+    : rep(feat, act) {
   }
 
   bool operator == (const UnigramScore & a) const {
-    return (a.payload.get<0>() == payload.get<0>() &&
-        a.payload.get<1>().hash() == payload.get<1>().hash());
+    return (a.rep.get<0>() == rep.get<0>() &&
+        a.rep.get<1>() == rep.get<1>());
   }
 
   friend class boost::serialization::access;
 
   template<class Archive>
   void serialize(Archive & ar, const unsigned version) {
-    ar & payload.get<0>() & payload.get<1>();
+    ar & rep.get<0>() & rep.get<1>();
   }
 
   friend std::size_t hash_value(const UnigramScore & m) {
     std::size_t seed = 0;
-    boost::hash_combine(seed, m.payload.get<0>());
-    boost::hash_combine(seed, m.payload.get<1>().hash());
+    boost::hash_combine(seed, m.rep.get<0>());
+    boost::hash_combine(seed, m.rep.get<1>());
     return seed;
   }
 
-  boost::tuples::tuple<int, action::action_t> payload;
+  boost::tuples::tuple<int, action::action_t> rep;
 };
 
 
@@ -50,31 +49,31 @@ struct BigramScore {
   BigramScore() {}
   
   BigramScore(int feat1, int feat2, const action::action_t& act)
-    : payload(feat1, feat2, act) {
+    : rep(feat1, feat2, act) {
   }
 
   bool operator == (const BigramScore & a) const {
-    return (a.payload.get<0>() == payload.get<0>() &&
-        a.payload.get<1>() == payload.get<1>() &&
-        a.payload.get<2>().hash() == payload.get<2>().hash());
+    return (a.rep.get<0>() == rep.get<0>() &&
+        a.rep.get<1>() == rep.get<1>() &&
+        a.rep.get<2>() == rep.get<2>());
   }
 
   friend class boost::serialization::access;
 
   template<class Archive>
   void serialize(Archive & ar, const unsigned version) {
-    ar & payload.get<0>() & payload.get<1>() & payload.get<2>();
+    ar & rep.get<0>() & rep.get<1>() & rep.get<2>();
   }
 
   friend std::size_t hash_value(const BigramScore & m) {
     std::size_t seed = 0;
-    boost::hash_combine(seed, m.payload.get<0>());
-    boost::hash_combine(seed, m.payload.get<1>());
-    boost::hash_combine(seed, m.payload.get<2>().hash());
+    boost::hash_combine(seed, m.rep.get<0>());
+    boost::hash_combine(seed, m.rep.get<1>());
+    boost::hash_combine(seed, m.rep.get<2>());
     return seed;
   }
 
-  boost::tuples::tuple<int, int, action::action_t> payload;
+  boost::tuples::tuple<int, int, action::action_t> rep;
 };
 
 
@@ -83,33 +82,33 @@ struct TrigramScore {
   TrigramScore() {}
 
   TrigramScore(int feat0, int feat1, int feat2, const action::action_t& act)
-    : payload(feat0, feat1, feat2, act) {
+    : rep(feat0, feat1, feat2, act) {
   }
 
   bool operator == (const TrigramScore & a) const {
-    return (a.payload.get<0>() == payload.get<0>() &&
-        a.payload.get<1>() == payload.get<1>() &&
-        a.payload.get<2>() == payload.get<2>() &&
-        a.payload.get<3>().hash() == payload.get<3>().hash());
+    return (a.rep.get<0>() == rep.get<0>() &&
+        a.rep.get<1>() == rep.get<1>() &&
+        a.rep.get<2>() == rep.get<2>() &&
+        a.rep.get<3>() == rep.get<3>());
   }
 
   friend class boost::serialization::access;
 
   template<class Archive>
   void serialize(Archive & ar, const unsigned version) {
-    ar & payload.get<0>() & payload.get<1>() & payload.get<2>() & payload.get<3>();
+    ar & rep.get<0>() & rep.get<1>() & rep.get<2>() & rep.get<3>();
   }
 
   friend std::size_t hash_value(const TrigramScore & m) {
     std::size_t seed = 0;
-    boost::hash_combine(seed, m.payload.get<0>());
-    boost::hash_combine(seed, m.payload.get<1>());
-    boost::hash_combine(seed, m.payload.get<2>());
-    boost::hash_combine(seed, m.payload.get<3>().hash());
+    boost::hash_combine(seed, m.rep.get<0>());
+    boost::hash_combine(seed, m.rep.get<1>());
+    boost::hash_combine(seed, m.rep.get<2>());
+    boost::hash_combine(seed, m.rep.get<3>());
     return seed;
   }
 
-  boost::tuples::tuple<int, int, int, action::action_t> payload;
+  boost::tuples::tuple<int, int, int, action::action_t> rep;
 };
 
 typedef UnigramScore  us_t;
